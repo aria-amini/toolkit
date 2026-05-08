@@ -47,6 +47,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:integration
+      - uses: actions/upload-artifact@v4
+        id: upload-report
+        with:
+          name: vitest-report
+          path: html/
+      - name: Viewer link in summary
+        run:
+          echo "[View HTML report](https://viewer.vitest.dev/?url=${{
+          steps.upload-report.outputs.artifact-url }})" >> $GITHUB_STEP_SUMMARY
 
   find-apps:
     runs-on: ubuntu-latest

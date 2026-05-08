@@ -132,6 +132,9 @@ importers:
       '@vitest/browser':
         specifier: ^4.1.4
         version: 4.1.4(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.2))(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(vitest@4.1.4)
+      '@vitest/ui':
+        specifier: ^4.1.4
+        version: 4.1.4(vitest@4.1.4)
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
@@ -271,6 +274,9 @@ importers:
       '@vitest/browser-playwright':
         specifier: ^4.0.18
         version: 4.1.4(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.2))(playwright@1.59.1)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(vitest@4.1.4)
+      '@vitest/ui':
+        specifier: ^4.1.4
+        version: 4.1.4(vitest@4.1.4)
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
@@ -401,6 +407,9 @@ importers:
       '@vitest/browser-playwright':
         specifier: ^4.1.4
         version: 4.1.4(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.2))(playwright@1.59.1)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(vitest@4.1.4)
+      '@vitest/ui':
+        specifier: ^4.1.4
+        version: 4.1.4(vitest@4.1.4)
       msw:
         specifier: ^2.13.4
         version: 2.13.4(@types/node@25.6.0)(typescript@6.0.2)
@@ -513,6 +522,9 @@ importers:
       '@vitest/browser':
         specifier: ^4.1.4
         version: 4.1.4(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.2))(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(vitest@4.1.4)
+      '@vitest/ui':
+        specifier: ^4.1.4
+        version: 4.1.4(vitest@4.1.4)
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
@@ -851,6 +863,9 @@ importers:
       '@vitest/browser':
         specifier: ^4.1.4
         version: 4.1.4(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.2))(vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(vitest@4.1.4)
+      '@vitest/ui':
+        specifier: ^4.1.4
+        version: 4.1.4(vitest@4.1.4)
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
@@ -7467,6 +7482,7 @@ packages:
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-compile-cache-lib@3.0.1:

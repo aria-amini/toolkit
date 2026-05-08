@@ -15,6 +15,8 @@
 		"lint": "oxlint --type-aware --max-warnings=0",
 		"test": "vitest run",
 		"test:unit": "vitest run --project unit",
+		"test:update": "vitest run --project browser tests --update",
+		"test:ui": "echo '\n  Vitest UI: http://127.0.0.1:51204/__vitest__/\n' && vitest --ui --open=false --api.host 0.0.0.0 --api.allowWrite true",
 		"verify": "turbo run build test typecheck"
 	},
 	"dependencies": {
@@ -39,6 +41,7 @@
 		"@vitejs/plugin-react": "^6.0.1",
 		"@vitest/browser": "^4.1.4",
 		"@vitest/browser-playwright": "^4.1.4",
+		"@vitest/ui": "^4.1.4",
 		"msw": "^2.13.4",
 		"playwright": "^1.59.1",
 		"tailwindcss": "^4.2.1",

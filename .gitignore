@@ -16,11 +16,12 @@ node_modules
 .DS_Store
 Thumbs.db
 
-# Playwright
+# Testing 
 test-results/
 playwright-report/
 .playwright
 .vitest-attachments
+html
 
 .pnpm-store
 .worktrees

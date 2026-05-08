@@ -16,8 +16,9 @@
 		"test": "vitest run",
 		"test:unit": "vitest run --project unit",
 		"test:integration": "vitest run --project browser --project server",
-		"test:update": "vitest run --project browser tests/pages.test.tsx --update",
+		"test:update": "vitest run --project browser tests --update",
 		"test:watch": "vitest --watch",
+		"test:ui": "echo '\n  Vitest UI: http://127.0.0.1:51204/__vitest__/\n' && vitest --ui --open=false --api.host 0.0.0.0 --api.allowWrite true",
 		"verify": "turbo run build test typecheck"
 	},
 	"dependencies": {
@@ -63,6 +64,7 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",
 		"@vitest/browser": "^4.1.4",
+		"@vitest/ui": "^4.1.4",
 		"babel-plugin-react-compiler": "^1.0.0",
 		"dotenv": "^17.4.2",
 		"msw": "^2.13.4",
