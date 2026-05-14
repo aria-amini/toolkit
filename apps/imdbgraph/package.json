@@ -27,7 +27,13 @@
 		"compose:up": "docker compose up -d",
 		"compose:logs": "docker compose logs -f app",
 		"compose:down": "docker compose down",
-		"populate": "tsx --env-file .env.local scripts/populate-db.ts"
+		"populate": "tsx --env-file .env.local scripts/populate-db.ts",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio",
+		"db:check": "drizzle-kit check",
+		"db:drop": "drizzle-kit drop"
 	},
 	"dependencies": {
 		"@aamini/lib": "workspace:*",

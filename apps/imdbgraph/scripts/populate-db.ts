@@ -1,17 +1,11 @@
 import { update } from '@/lib/imdb/scraper.ts'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-
-const DATABASE_URL = process.env.DATABASE_URL
-
-if (!DATABASE_URL) {
-	console.error('DATABASE_URL is not defined')
-	process.exit(1)
-}
+import { env } from '../src/env.ts'
 
 const db = drizzle({
 	client: new Pool({
-		connectionString: DATABASE_URL,
+		connectionString: env.DATABASE_URL,
 	}),
 })
 

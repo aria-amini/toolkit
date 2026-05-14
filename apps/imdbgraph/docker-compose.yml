@@ -1,7 +1,6 @@
 x-app-env: &app-env
   RAILWAY_ENVIRONMENT_NAME: docker
   DATABASE_URL: postgres://imdbgraph_user:imdbgraph_test@postgres:5432/imdbgraph_test
-  CRON_SECRET: local-dev-secret
 
 services:
   app:

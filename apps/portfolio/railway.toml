@@ -1,9 +1,9 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "apps/pawpaws-dog-grooming/Dockerfile"
-buildCommand = "pnpm --filter pawpaws-dog-grooming build"
+dockerfilePath = "apps/portfolio/Dockerfile"
+buildCommand = "pnpm --filter portfolio build"
 watchPatterns = [
-	"/apps/pawpaws-dog-grooming/**",
+	"/apps/portfolio/**",
 	"/packages/**",
 	"package.json",
 	"pnpm-lock.yaml",

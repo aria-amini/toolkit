@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RatingsIdRouteImport } from './routes/ratings/$id'
 import { Route as ApiSuggestionsRouteImport } from './routes/api/suggestions'
-import { Route as ApiPopulateRouteImport } from './routes/api/populate'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,42 +28,33 @@ const ApiSuggestionsRoute = ApiSuggestionsRouteImport.update({
   path: '/api/suggestions',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPopulateRoute = ApiPopulateRouteImport.update({
-  id: '/api/populate',
-  path: '/api/populate',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/api/populate': typeof ApiPopulateRoute
   '/api/suggestions': typeof ApiSuggestionsRoute
   '/ratings/$id': typeof RatingsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/api/populate': typeof ApiPopulateRoute
   '/api/suggestions': typeof ApiSuggestionsRoute
   '/ratings/$id': typeof RatingsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/api/populate': typeof ApiPopulateRoute
   '/api/suggestions': typeof ApiSuggestionsRoute
   '/ratings/$id': typeof RatingsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/populate' | '/api/suggestions' | '/ratings/$id'
+  fullPaths: '/' | '/api/suggestions' | '/ratings/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/populate' | '/api/suggestions' | '/ratings/$id'
-  id: '__root__' | '/' | '/api/populate' | '/api/suggestions' | '/ratings/$id'
+  to: '/' | '/api/suggestions' | '/ratings/$id'
+  id: '__root__' | '/' | '/api/suggestions' | '/ratings/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ApiPopulateRoute: typeof ApiPopulateRoute
   ApiSuggestionsRoute: typeof ApiSuggestionsRoute
   RatingsIdRoute: typeof RatingsIdRoute
 }
@@ -92,19 +82,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSuggestionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/populate': {
-      id: '/api/populate'
-      path: '/api/populate'
-      fullPath: '/api/populate'
-      preLoaderRoute: typeof ApiPopulateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ApiPopulateRoute: ApiPopulateRoute,
   ApiSuggestionsRoute: ApiSuggestionsRoute,
   RatingsIdRoute: RatingsIdRoute,
 }

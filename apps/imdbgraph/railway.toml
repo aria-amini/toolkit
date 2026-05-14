@@ -1,5 +1,6 @@
 [build]
-builder = "RAILPACK"
+builder = "DOCKERFILE"
+dockerfilePath = "apps/imdbgraph/Dockerfile"
 buildCommand = "pnpm --filter imdbgraph build"
 watchPatterns = [
 	"/apps/imdbgraph/**",
@@ -12,7 +13,7 @@ watchPatterns = [
 multiRegionConfig = { "us-west2" = { numReplicas = 1 } }
 runtime = "V2"
 numReplicas = 1
-startCommand = "cd apps/imdbgraph && node .output/server/index.mjs"
+startCommand = "node .output/server/index.mjs"
 healthcheckPath = "/"
 sleepApplication = true
 useLegacyStacker = false

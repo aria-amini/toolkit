@@ -42,7 +42,7 @@ export const show = pgTable(
 		numVotes: integer('num_votes').default(0).notNull(),
 	},
 	(table) => [
-		index('trigram_index').using('gin', sql`title gin_trgm_ops`),
+		index('show_title_trigram_index').using('gin', sql`title gin_trgm_ops`),
 		index().using('btree', table.rating.desc().nullsLast().op('float8_ops')),
 	],
 )

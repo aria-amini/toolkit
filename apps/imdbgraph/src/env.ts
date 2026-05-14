@@ -4,6 +4,5 @@ import { z } from 'zod'
 export const env = createEnv(
 	z.object({
 		DATABASE_URL: z.string(),
-		CRON_SECRET: z.string(),
 	}),
 )

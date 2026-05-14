@@ -27,5 +27,5 @@ export function createEnv<T extends ZodTypeAny>(schema: T): z.infer<T> {
 		process.env[key] ??= value
 	}
 
-	return schema.parse({ ...fileEnvironment, ...process.env })
+	return schema.parse({ ...process.env, ...fileEnvironment })
 }
