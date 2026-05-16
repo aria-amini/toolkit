@@ -2,14 +2,15 @@ name: Publish
 
 on:
   push:
-    branches: [main]
+    tags:
+      - "v*.*.*"
 
 permissions:
   contents: read
   id-token: write
 
 concurrency:
-  group: release
+  group: publish-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -18,42 +19,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
       - uses: voidzero-dev/setup-vp@v1
 
-      - name: Detect version changes
-        id: versions
-        run: |
-          CONFIG_PREV=$(git show "${{ github.event.before }}:packages/config/package.json" | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)")
-          CONFIG_CURR=$(node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('packages/config/package.json','utf8'));process.stdout.write(pkg.version)")
-          LIB_PREV=$(git show "${{ github.event.before }}:packages/lib/package.json" | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)")
-          LIB_CURR=$(node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('packages/lib/package.json','utf8'));process.stdout.write(pkg.version)")
-
-          if [ "$CONFIG_PREV" != "$CONFIG_CURR" ]; then
-            echo "config_changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
-          if [ "$LIB_PREV" != "$LIB_CURR" ]; then
-            echo "lib_changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Build and publish config
-        if: steps.versions.outputs.config_changed == 'true'
         run: |
           vp run @aamini/config#build
           npm publish --access public --provenance
         working-directory: packages/config
 
       - name: Build and publish lib
-        if: steps.versions.outputs.lib_changed == 'true'
         run: |
           vp run @aamini/lib#build
           npm publish --access public --provenance
         working-directory: packages/lib
-
-      - name: No version changes
-        if: steps.versions.outputs.config_changed != 'true' && steps.versions.outputs.lib_changed != 'true'
-        run: |
-          echo "No package version changes detected; skipping publish."
