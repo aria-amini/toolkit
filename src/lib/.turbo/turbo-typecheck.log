@@ -1,0 +1,5 @@
+
+
+> @aamini/lib@ typecheck /home/ariaamini/projects/packages/lib
+> tsc --noEmit
+
