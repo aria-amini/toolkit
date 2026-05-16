@@ -45,18 +45,14 @@ jobs:
 
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Build and publish config
+      - name: Publish config
         if: steps.versions.outputs.changed == 'true'
-        run: |
-          vp run @aamini/config#build
-          npm publish --access public --provenance
+        run: npm publish --access public --provenance
         working-directory: src/config
 
-      - name: Build and publish lib
+      - name: Publish lib
         if: steps.versions.outputs.changed == 'true'
-        run: |
-          vp run @aamini/lib#build
-          npm publish --access public --provenance
+        run: npm publish --access public --provenance
         working-directory: src/lib
 
       - name: Tag release
