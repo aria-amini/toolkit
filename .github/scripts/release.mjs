@@ -10,14 +10,21 @@ const bump = labels.has('semver:major')
     ? 'minor'
     : 'patch'
 
+execFileSync('git', ['fetch', '--tags', '--force'])
+
 const latestTag = execFileSync('git', ['tag', '--list', 'v*.*.*', '--sort=-v:refname'], {
   encoding: 'utf8',
 }).trim().split('\n').find(Boolean) ?? 'v0.0.0'
 
 const nextVersion = bumpVersion(latestTag.slice(1), bump)
 
-await updatePackageJson('packages/config/package.json', nextVersion)
-await updatePackageJson('packages/lib/package.json', nextVersion)
+const configChanged = await updatePackageJson('packages/config/package.json', nextVersion)
+const libChanged = await updatePackageJson('packages/lib/package.json', nextVersion)
+
+if (!configChanged && !libChanged) {
+  console.log(`No release changes needed for v${nextVersion}`)
+  process.exit(0)
+}
 
 execFileSync('git', ['config', 'user.name', 'github-actions[bot]'])
 execFileSync('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com'])
@@ -42,6 +49,11 @@ function bumpVersion(version, level) {
 
 async function updatePackageJson(filePath, version) {
   const contents = JSON.parse(await readFile(filePath, 'utf8'))
+  if (contents.version === version) {
+    return false
+  }
+
   contents.version = version
   await writeFile(filePath, `${JSON.stringify(contents, null, '\t')}\n`)
+  return true
 }
