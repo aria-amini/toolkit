@@ -4,8 +4,7 @@ import { z } from 'zod'
 export function createEnv<T extends z.ZodTypeAny>(schema: T): z.infer<T> {
 	const raw =
 		process.env.RAILWAY_ENVIRONMENT_NAME ??
-		process.env.NODE_ENV ??
-		'development'
+		(process.env.NODE_ENV === 'production' ? 'production' : 'development')
 	const environmentName = /(?:^|-)pr-\d+$/.test(raw) ? 'staging' : raw
 	const fileEnvironment: NodeJS.ProcessEnv = {}
 
