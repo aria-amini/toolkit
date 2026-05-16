@@ -55,6 +55,7 @@
 	},
 	"scripts": {
 		"build": "vp pack",
+		"bump": "npm version patch --no-git-tag-version",
 		"pack": "vp pack",
 		"prepublishOnly": "vp pack"
 	},

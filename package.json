@@ -5,6 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "vp build",
+		"bump": "vp run --filter './src/*' bump",
 		"test": "vp test",
 		"check": "vp check"
 	},
