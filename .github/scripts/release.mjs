@@ -21,17 +21,17 @@ const nextVersion = bumpVersion(latestTag.slice(1), bump)
 const configChanged = await updatePackageJson('packages/config/package.json', nextVersion)
 const libChanged = await updatePackageJson('packages/lib/package.json', nextVersion)
 
-if (!configChanged && !libChanged) {
-  console.log(`No release changes needed for v${nextVersion}`)
-  process.exit(0)
-}
-
 execFileSync('git', ['config', 'user.name', 'github-actions[bot]'])
 execFileSync('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com'])
-execFileSync('git', ['add', 'packages/config/package.json', 'packages/lib/package.json'])
-execFileSync('git', ['commit', '-m', `chore(release): v${nextVersion}`])
-execFileSync('git', ['tag', `v${nextVersion}`])
-execFileSync('git', ['push', 'origin', 'HEAD:main', '--follow-tags'])
+
+if (configChanged || libChanged) {
+  execFileSync('git', ['add', 'packages/config/package.json', 'packages/lib/package.json'])
+  execFileSync('git', ['commit', '-m', `chore(release): v${nextVersion}`])
+  execFileSync('git', ['push', 'origin', 'HEAD:main'])
+}
+
+execFileSync('git', ['tag', '-a', `v${nextVersion}`, '-m', `v${nextVersion}`])
+execFileSync('git', ['push', 'origin', `v${nextVersion}`])
 
 function bumpVersion(version, level) {
   const [major, minor, patch] = version.split('.').map((part) => Number.parseInt(part, 10))
