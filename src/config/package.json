@@ -1,6 +1,6 @@
 {
 	"name": "@aamini/config",
-	"version": "0.0.8",
+	"version": "0.0.10",
 	"private": false,
 	"type": "module",
 	"repository": {
@@ -55,6 +55,7 @@
 	},
 	"scripts": {
 		"build": "vp pack",
+		"bump": "npm version patch --no-git-tag-version",
 		"pack": "vp pack",
 		"prepublishOnly": "vp pack"
 	},
