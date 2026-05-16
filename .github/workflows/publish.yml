@@ -1,20 +1,11 @@
 name: Publish
 
 on:
-  workflow_dispatch:
-    inputs:
-      release_type:
-        description: Version bump to apply to both packages.
-        required: true
-        default: patch
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+  push:
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
   id-token: write
 
 concurrency:
@@ -22,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -32,40 +23,37 @@ jobs:
 
       - uses: voidzero-dev/setup-vp@v1
 
-      - name: Configure git
+      - name: Detect version changes
+        id: versions
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          CONFIG_PREV=$(git show "${{ github.event.before }}:packages/config/package.json" | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)")
+          CONFIG_CURR=$(node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('packages/config/package.json','utf8'));process.stdout.write(pkg.version)")
+          LIB_PREV=$(git show "${{ github.event.before }}:packages/lib/package.json" | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)")
+          LIB_CURR=$(node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('packages/lib/package.json','utf8'));process.stdout.write(pkg.version)")
 
-      - name: Bump config version
-        id: bump
-        run: |
-          npm version "${{ inputs.release_type }}" --no-git-tag-version
-          VERSION=$(node -p 'require("./package.json").version')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-        working-directory: packages/config
+          if [ "$CONFIG_PREV" != "$CONFIG_CURR" ]; then
+            echo "config_changed=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Sync lib version
-        run: |
-          npm version "${{ steps.bump.outputs.version }}" --no-git-tag-version
-        working-directory: packages/lib
-
-      - name: Commit and tag release
-        run: |
-          VERSION="${{ steps.bump.outputs.version }}"
-          git add packages/config/package.json packages/lib/package.json
-          git commit -m "v${VERSION}"
-          git tag -a "v${VERSION}" -m "v${VERSION}"
-          git push --atomic origin HEAD:main "v${VERSION}"
+          if [ "$LIB_PREV" != "$LIB_CURR" ]; then
+            echo "lib_changed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build and publish config
+        if: steps.versions.outputs.config_changed == 'true'
         run: |
           vp run @aamini/config#build
           npm publish --access public --provenance
         working-directory: packages/config
 
       - name: Build and publish lib
+        if: steps.versions.outputs.lib_changed == 'true'
         run: |
           vp run @aamini/lib#build
           npm publish --access public --provenance
         working-directory: packages/lib
+
+      - name: No version changes
+        if: steps.versions.outputs.config_changed != 'true' && steps.versions.outputs.lib_changed != 'true'
+        run: |
+          echo "No package version changes detected; skipping publish."
