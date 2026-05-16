@@ -5,13 +5,10 @@
 	"type": "module",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/aamini-stack/toolkit",
+		"url": "https://github.com/aamini11/toolkit",
 		"directory": "packages/config"
 	},
-	"bugs": {
-		"url": "https://github.com/aamini-stack/toolkit/issues"
-	},
-	"homepage": "https://github.com/aamini-stack/toolkit/tree/main/packages/config#readme",
+	"homepage": "https://github.com/aamini11/toolkit/tree/main/packages/config#readme",
 	"publishConfig": {
 		"access": "public"
 	},
