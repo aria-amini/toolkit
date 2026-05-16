@@ -1,22 +1,20 @@
 import { config } from 'dotenv'
-import type { ZodTypeAny, z } from 'zod'
+import { z } from 'zod'
 
-export function createEnv<T extends ZodTypeAny>(schema: T): z.infer<T> {
-	const rawEnvironmentName =
+export function createEnv<T extends z.ZodTypeAny>(schema: T): z.infer<T> {
+	const raw =
 		process.env.RAILWAY_ENVIRONMENT_NAME ??
 		process.env.NODE_ENV ??
 		'development'
-	const environmentName = /(?:^|-)pr-\d+$/.test(rawEnvironmentName)
-		? 'staging'
-		: rawEnvironmentName
-	const fileEnvironment: Record<string, string> = {}
+	const environmentName = /(?:^|-)pr-\d+$/.test(raw) ? 'staging' : raw
+	const fileEnvironment: NodeJS.ProcessEnv = {}
 
 	config({
 		path: [
-			`.env.${environmentName}`,
 			'.env',
-			`.env.${environmentName}.local`,
 			'.env.local',
+			`.env.${environmentName}`,
+			`.env.${environmentName}.local`,
 		],
 		quiet: true,
 		override: true,
@@ -27,5 +25,5 @@ export function createEnv<T extends ZodTypeAny>(schema: T): z.infer<T> {
 		process.env[key] ??= value
 	}
 
-	return schema.parse({ ...process.env, ...fileEnvironment })
+	return schema.parse(process.env)
 }

@@ -1,20 +1,48 @@
 {
 	"name": "@aamini/lib",
+	"version": "0.0.4",
+	"private": false,
 	"type": "module",
-	"private": true,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/aamini-stack/projects.git",
+		"directory": "packages/lib"
+	},
+	"bugs": {
+		"url": "https://github.com/aamini-stack/projects/issues"
+	},
+	"homepage": "https://github.com/aamini-stack/projects/tree/main/packages/lib#readme",
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"src"
+	],
 	"exports": {
-		"./env": "./src/env.ts",
-		"./posthog-proxy": "./src/posthog-proxy.ts"
+		"./env": {
+			"types": "./dist/env.d.mts",
+			"import": "./dist/env.mjs",
+			"default": "./dist/env.mjs"
+		},
+		"./posthog-proxy": {
+			"types": "./dist/posthog-proxy.d.mts",
+			"import": "./dist/posthog-proxy.mjs",
+			"default": "./dist/posthog-proxy.mjs"
+		}
 	},
 	"scripts": {
-		"typecheck": "tsc --noEmit"
+		"build": "vp pack",
+		"pack": "vp pack",
+		"prepublishOnly": "vp pack",
+		"check": "vp check"
 	},
 	"dependencies": {
 		"dotenv": "^17.4.2",
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
-		"@aamini/config-typescript": "workspace:*",
+		"@aamini/config": "workspace:*",
 		"typescript": "6.0.2"
 	}
 }

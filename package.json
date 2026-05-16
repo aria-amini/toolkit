@@ -1,35 +1,15 @@
 {
 	"name": "@aamini/root",
-	"private": true,
 	"version": "0.0.0",
+	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "turbo build",
-		"format": "oxfmt --check",
-		"format:fix": "oxfmt",
-		"typecheck": "turbo run typecheck",
-		"lint": "oxlint --type-aware --max-warnings=0",
-		"test": "turbo run test",
-		"test:unit": "turbo run test:unit",
-		"test:integration": "turbo run test:integration",
-		"test:update": "turbo run test:update",
-		"e2e": "turbo run --continue=dependencies-successful e2e --concurrency 1",
-		"e2e:staging": "turbo run --continue=dependencies-successful e2e:staging --concurrency 1",
-		"verify": "turbo run --continue=dependencies-successful build lint format test typecheck",
-		"verify:ci": "turbo run --continue=dependencies-successful build lint format test typecheck e2e:ci",
-		"install-browser": "playwright install chromium --with-deps"
+		"build": "vp build",
+		"test": "vp test",
+		"check": "vp check"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.59.1",
-		"oxfmt": "^0.45.0",
-		"oxlint": "^1.53.0",
-		"oxlint-tsgolint": "^0.21.1",
-		"prettier": "^3.8.1",
-		"prettier-plugin-jsdoc": "^1.8.0",
-		"prettier-plugin-organize-imports": "^4.3.0",
-		"prettier-plugin-tailwindcss": "^0.7.2",
-		"tsx": "^4.21.0",
-		"turbo": "^2.8.16"
+		"vite-plus": "catalog:"
 	},
 	"engines": {
 		"node": ">=22"

@@ -1,9 +1,0 @@
-{
-	"$schema": "https://turborepo.com/schema.json",
-	"extends": ["//"],
-	"tasks": {
-		"build": {
-			"env": ["$TURBO_EXTENDS$", "MAILGUN_API_KEY", "MAILGUN_DOMAIN"]
-		}
-	}
-}

@@ -2,80 +2,19 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-
 jobs:
-  quality-checks:
+  check:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v6
-      - name: setup pnpm
-        uses: pnpm/action-setup@v5
-      - name: setup node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo run format typecheck lint test:unit
-
-  integration-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v6
-      - name: setup pnpm
-        uses: pnpm/action-setup@v5
-      - name: setup node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:integration
-      - uses: actions/upload-artifact@v4
-        id: upload-report
-        with:
-          name: vitest-report
-          path: html/
-      - name: Viewer link in summary
-        run:
-          echo "[View HTML report](https://viewer.vitest.dev/?url=${{
-          steps.upload-report.outputs.artifact-url }})" >> $GITHUB_STEP_SUMMARY
-
-  find-apps:
-    runs-on: ubuntu-latest
-    outputs:
-      apps: ${{ steps.calculate-apps.outputs.apps }}
-    steps:
-      - name: checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: 'pnpm'
-      - run: pnpm i --frozen-lockfile
-      - name: Get Changed Apps
-        id: calculate-apps
-        run: |
-          FILTER="{./apps/*}...[HEAD~...HEAD]"
-          APPS=$(pnpm exec turbo e2e --filter="$FILTER" --dry=json | jq -c .packages)
-          echo $APPS
-          echo "apps=$APPS" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v6
+      - uses: voidzero-dev/setup-vp@v1
+      - run: vp check
+      - run: vp test

@@ -1,0 +1,30 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: voidzero-dev/setup-vp@v1
+      - run: vp run @aamini/config#build
+      - run: npm publish --access public --provenance
+        working-directory: packages/config
+
+  publish-lib:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: voidzero-dev/setup-vp@v1
+      - run: vp run @aamini/lib#build
+      - run: npm publish --access public --provenance
+        working-directory: packages/lib
+

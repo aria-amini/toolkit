@@ -1,0 +1,6 @@
+{
+	"extends": "@aamini/config/typescript/lib",
+	"compilerOptions": {
+		"noEmit": true
+	}
+}

@@ -1,7 +1,0 @@
-**/node_modules
-**/.output
-.git
-.gitignore
-*.md
-.DS_Store
-.env*
