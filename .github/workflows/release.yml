@@ -22,8 +22,6 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - uses: voidzero-dev/setup-vp@v1
-
       - name: Bump version and create tag
         env:
           GITHUB_EVENT_PATH: ${{ github.event_path }}
