@@ -79,4 +79,17 @@ describe.sequential('createEnv', () => {
 		expect(() => env).not.toThrow()
 		expect(() => env.DATABASE_URL).toThrow(/expected string/)
 	})
+
+	it('ignores empty dotenv values', () => {
+		delete process.env.DATABASE_URL
+		writeFileSync(join(tempDir, '.env.production'), 'DATABASE_URL=\n')
+
+		const env = createEnv(
+			z.object({
+				DATABASE_URL: z.string(),
+			}),
+		)
+
+		expect(() => env.DATABASE_URL).toThrow(/expected string/)
+	})
 })
