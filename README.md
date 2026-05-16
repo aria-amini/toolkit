@@ -1,4 +1,4 @@
-# projects
+# toolkit
 
 Monorepo for shared packages used across aamini apps.
 
