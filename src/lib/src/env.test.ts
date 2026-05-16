@@ -14,9 +14,7 @@ describe.sequential('createEnv', () => {
 	beforeEach(() => {
 		tempDir = mkdtempSync(join(tmpdir(), 'aamini-lib-env-'))
 		process.chdir(tempDir)
-		writeFileSync(join(tempDir, '.env'), 'DATABASE_URL=postgres://from-file\n')
 		process.env.RAILWAY_ENVIRONMENT_NAME = 'production'
-		process.env.DATABASE_URL = 'postgres://from-railway'
 	})
 
 	afterEach(() => {
@@ -30,6 +28,9 @@ describe.sequential('createEnv', () => {
 	})
 
 	it('keeps injected env values ahead of dotenv files', () => {
+		writeFileSync(join(tempDir, '.env'), 'DATABASE_URL=postgres://from-file\n')
+		process.env.DATABASE_URL = 'postgres://from-railway'
+
 		const env = createEnv(
 			z.object({
 				DATABASE_URL: z.string(),
@@ -39,5 +40,43 @@ describe.sequential('createEnv', () => {
 		expect(env.DATABASE_URL).toBe('postgres://from-railway')
 		expect(process.env.DATABASE_URL).toBe('postgres://from-railway')
 		expect(readFileSync(join(tempDir, '.env'), 'utf8')).toContain('from-file')
+	})
+
+	it('loads dotenv files from lowest to highest precedence', () => {
+		delete process.env.DATABASE_URL
+		writeFileSync(join(tempDir, '.env'), 'DATABASE_URL=postgres://from-env\n')
+		writeFileSync(
+			join(tempDir, '.env.local'),
+			'DATABASE_URL=postgres://from-local\n',
+		)
+		writeFileSync(
+			join(tempDir, '.env.production'),
+			'DATABASE_URL=postgres://from-production\n',
+		)
+		writeFileSync(
+			join(tempDir, '.env.production.local'),
+			'DATABASE_URL=postgres://from-production-local\n',
+		)
+
+		const env = createEnv(
+			z.object({
+				DATABASE_URL: z.string(),
+			}),
+		)
+
+		expect(env.DATABASE_URL).toBe('postgres://from-production-local')
+	})
+
+	it('does not validate until an env value is read', () => {
+		delete process.env.DATABASE_URL
+
+		const env = createEnv(
+			z.object({
+				DATABASE_URL: z.string(),
+			}),
+		)
+
+		expect(() => env).not.toThrow()
+		expect(() => env.DATABASE_URL).toThrow(/expected string/)
 	})
 })
