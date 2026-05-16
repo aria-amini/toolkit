@@ -1,30 +1,70 @@
 name: Publish
 
 on:
-  push:
-    branches: [main]
-    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Version bump to apply to both packages.
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
   id-token: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  publish-config:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
       - uses: voidzero-dev/setup-vp@v1
-      - run: vp run @aamini/config#build
-      - run: npm publish --access public --provenance
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump config version
+        id: bump
+        run: |
+          npm version "${{ inputs.release_type }}" --no-git-tag-version
+          echo "version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
         working-directory: packages/config
 
-  publish-lib:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: voidzero-dev/setup-vp@v1
-      - run: vp run @aamini/lib#build
-      - run: npm publish --access public --provenance
+      - name: Sync lib version
+        run: |
+          npm version "${{ steps.bump.outputs.version }}" --no-git-tag-version
         working-directory: packages/lib
 
+      - name: Commit and tag release
+        run: |
+          VERSION="${{ steps.bump.outputs.version }}"
+          git add packages/config/package.json packages/lib/package.json
+          git commit -m "v${VERSION}"
+          git tag -a "v${VERSION}" -m "v${VERSION}"
+          git push --atomic origin HEAD:main "v${VERSION}"
+
+      - name: Build and publish config
+        run: |
+          vp run @aamini/config#build
+          npm publish --access public --provenance
+        working-directory: packages/config
+
+      - name: Build and publish lib
+        run: |
+          vp run @aamini/lib#build
+          npm publish --access public --provenance
+        working-directory: packages/lib
