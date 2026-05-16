@@ -4,6 +4,10 @@ type EnvSchema<T extends object> = {
 	parse(input: unknown): T
 }
 
+function isUsableEnvValue(value: string | undefined): value is string {
+	return value !== undefined && value.trim() !== ''
+}
+
 export function createEnv<T extends object>(schema: EnvSchema<T>): T {
 	const raw =
 		process.env.RAILWAY_ENVIRONMENT_NAME ??
@@ -28,10 +32,14 @@ export function createEnv<T extends object>(schema: EnvSchema<T>): T {
 	function parseEnv() {
 		if (parsed !== undefined) return parsed
 
-		const env: NodeJS.ProcessEnv = { ...fileEnvironment }
+		const env: NodeJS.ProcessEnv = {}
+
+		for (const [key, value] of Object.entries(fileEnvironment)) {
+			if (isUsableEnvValue(value)) env[key] = value
+		}
 
 		for (const [key, value] of Object.entries(process.env)) {
-			if (value !== undefined) env[key] = value
+			if (isUsableEnvValue(value)) env[key] = value
 		}
 
 		parsed = schema.parse(env)
