@@ -1,14 +1,17 @@
 {
 	"name": "@aamini/config",
-	"version": "0.0.12",
+	"version": "0.0.13",
 	"private": false,
 	"type": "module",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/aamini11/toolkit",
+		"url": "https://github.com/aria-amini/toolkit",
 		"directory": "packages/config"
 	},
-	"homepage": "https://github.com/aamini11/toolkit/tree/main/packages/config#readme",
+	"bugs": {
+		"url": "https://github.com/aria-amini/toolkit/issues"
+	},
+	"homepage": "https://github.com/aria-amini/toolkit/tree/main/packages/config#readme",
 	"publishConfig": {
 		"access": "public"
 	},
@@ -33,9 +36,9 @@
 			"default": "./dist/playwright.shared.config.mjs"
 		},
 		"./vitest": {
-			"types": "./dist/vite.shared.d.mts",
-			"import": "./dist/vite.shared.mjs",
-			"default": "./dist/vite.shared.mjs"
+			"types": "./dist/vitest.shared.d.mts",
+			"import": "./dist/vitest.shared.mjs",
+			"default": "./dist/vitest.shared.mjs"
 		},
 		"./test/*": {
 			"types": "./dist/test/*.d.mts",
