@@ -1,8 +1,8 @@
 // oxlint-disable no-empty-pattern
 import { setupServer, SetupServer } from 'msw/node'
 import { resolve } from 'node:path'
-import { test as baseTest } from 'vitest'
-import type { TestAPI } from 'vitest'
+import { test as baseTest } from 'vite-plus/test'
+import type { TestAPI } from 'vite-plus/test'
 import type { Database } from './database'
 import { seedDatabase } from './database'
 import { findHandlerPath } from './internal'
@@ -10,6 +10,14 @@ import { findHandlerPath } from './internal'
 const DEFAULT_SCHEMA_PATH = 'src/db/tables.ts'
 const DEFAULT_MIGRATIONS_PATH = 'src/db/migrations'
 const DEFAULT_IMAGE = 'postgres:17'
+
+export interface DbConfig {
+	schemaPath?: string
+	migrationsPath?: string
+	postgresImage?: string
+}
+
+let dbConfig: DbConfig = {}
 
 export interface DbFixture {
 	server: SetupServer
@@ -53,15 +61,24 @@ let extended = baseTest.extend<DbFixture>({
 			const { Wait } = await import('testcontainers')
 			const { Pool } = await import('pg')
 
-			const schemaPath = resolve(process.cwd(), DEFAULT_SCHEMA_PATH)
-			const migrationsFolder = resolve(process.cwd(), DEFAULT_MIGRATIONS_PATH)
+			const schemaPath = resolve(
+				process.cwd(),
+				dbConfig.schemaPath ?? DEFAULT_SCHEMA_PATH,
+			)
+			const migrationsFolder = resolve(
+				process.cwd(),
+				dbConfig.migrationsPath ?? DEFAULT_MIGRATIONS_PATH,
+			)
 
-			const container = await new PostgreSqlContainer(DEFAULT_IMAGE)
+			const container = await new PostgreSqlContainer(
+				dbConfig.postgresImage ?? DEFAULT_IMAGE,
+			)
 				.withWaitStrategy(Wait.forHealthCheck())
 				.start()
-			const db = drizzle({
-				client: new Pool({ connectionString: container.getConnectionUri() }),
-			}) as Database
+			const client = new Pool({
+				connectionString: container.getConnectionUri(),
+			})
+			const db = Object.assign(drizzle({ client }), { $client: client })
 
 			try {
 				await seedDatabase(db, { schemaPath, migrationsFolder, seedFunction })
@@ -75,12 +92,18 @@ let extended = baseTest.extend<DbFixture>({
 	],
 })
 
-export { afterEach, beforeEach, describe, expect, vi } from 'vitest'
+export { afterEach, beforeEach, describe, expect, vi } from 'vite-plus/test'
 
+// Vitest's extend() returns an internal CustomAPI type rather than TestAPI.
 export const test = extended as TestAPI<DbFixture>
 
-export function initDb(seedFunction: (db: Database) => Promise<void>) {
+export function initDb(
+	seedFunction: (db: Database) => Promise<void>,
+	config: DbConfig = {},
+) {
+	dbConfig = config
 	extended = extended.override({
 		seedFunction: [async ({}, use) => use(seedFunction), { scope: 'file' }],
+		// Vitest's override() returns a broad union; narrow back to the fixture type.
 	}) as typeof extended
 }

@@ -1,7 +1,7 @@
 // oxlint-disable no-empty-pattern
 import { setupServer, type SetupServer } from 'msw/node'
-import { test as baseTest } from 'vitest'
-import type { TestAPI } from 'vitest'
+import { test as baseTest } from 'vite-plus/test'
+import type { TestAPI } from 'vite-plus/test'
 import { findHandlerPath } from './internal'
 
 export interface MswServerFixture {
@@ -38,6 +38,7 @@ const extended = baseTest.extend<MswServerFixture>({
 	],
 })
 
-export { afterEach, beforeEach, describe, expect, vi } from 'vitest'
+export { afterEach, beforeEach, describe, expect, vi } from 'vite-plus/test'
 
+// Vitest's extend() returns an internal CustomAPI type rather than TestAPI.
 export const test = extended as TestAPI<MswServerFixture>

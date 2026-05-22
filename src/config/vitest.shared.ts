@@ -1,124 +1,57 @@
 import tailwindcss from '@tailwindcss/vite'
 import viteReact from '@vitejs/plugin-react'
-import { playwright } from '@vitest/browser-playwright'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
-import type { Plugin } from 'vite'
 import svgr from 'vite-plugin-svgr'
+import { playwright } from 'vite-plus/test/browser-playwright'
 import {
 	defineConfig,
 	mergeConfig,
 	type TestProjectConfiguration,
 	type TestProjectInlineConfiguration,
-	type ViteUserConfig,
-} from 'vitest/config'
-
-const HANDLER_LOCATIONS = [
-	'__mocks__/handlers.ts',
-	'__mocks__/handlers.js',
-	'src/mocks/handlers.ts',
-	'src/mocks/handlers.js',
-]
-
-const STYLES_LOCATIONS = ['src/styles.css', 'src/index.css', 'src/app.css']
-
-function mswHandlersPlugin(): Plugin {
-	const virtualModuleId = '@test/handlers'
-	const resolvedVirtualModuleId = '\0' + virtualModuleId
-
-	return {
-		name: 'msw-handlers-resolver',
-		resolveId(id) {
-			if (id === virtualModuleId) {
-				return resolvedVirtualModuleId
-			}
-			return undefined
-		},
-		load(id) {
-			if (id === resolvedVirtualModuleId) {
-				const cwd = process.cwd()
-				for (const location of HANDLER_LOCATIONS) {
-					const fullPath = resolve(cwd, location)
-					if (existsSync(fullPath)) {
-						return `export { default } from '${fullPath}'`
-					}
-				}
-				throw new Error(
-					`No MSW handlers found. Expected one of:\n${HANDLER_LOCATIONS.map((l) => `  - ${resolve(cwd, l)}`).join('\n')}`,
-				)
-			}
-			return undefined
-		},
-	}
-}
-
-function stylesPlugin(): Plugin {
-	const virtualModuleId = '@test/styles'
-	const resolvedVirtualModuleId = '\0' + virtualModuleId
-
-	return {
-		name: 'styles-resolver',
-		resolveId(id) {
-			if (id === virtualModuleId) {
-				return resolvedVirtualModuleId
-			}
-			return undefined
-		},
-		load(id) {
-			if (id === resolvedVirtualModuleId) {
-				const cwd = process.cwd()
-				for (const location of STYLES_LOCATIONS) {
-					const fullPath = resolve(cwd, location)
-					if (existsSync(fullPath)) {
-						return `import '${fullPath}'`
-					}
-				}
-				throw new Error(
-					`No styles file found. Expected one of:\n${STYLES_LOCATIONS.map((l) => `  - ${resolve(cwd, l)}`).join('\n')}`,
-				)
-			}
-			return undefined
-		},
-	}
-}
+} from 'vite-plus/test/config'
+import {
+	createMswHandlersPlugin,
+	createStylesPlugin,
+} from './plugins/virtual-modules.ts'
 
 const stylesSetup = '@aamini/config/setup/styles'
-
-function asPlugins(plugins: unknown[]): NonNullable<ViteUserConfig['plugins']> {
-	return plugins as NonNullable<ViteUserConfig['plugins']>
-}
 
 function mergeProjectConfig(
 	base: TestProjectConfiguration,
 	overrides: TestProjectConfiguration = {},
 ): TestProjectConfiguration {
+	// Vite's mergeConfig expects Record<string, any> and returns Record<string, any>.
+	// TestProjectConfiguration uses stricter types, so casts are required.
 	return mergeConfig(
 		base as Record<string, any>,
 		overrides as Record<string, any>,
 	) as TestProjectConfiguration
 }
 
-// Auto-detect app-level vitest.setup.ts for custom setup (e.g., MSW server)
-const localSetup = resolve(process.cwd(), 'vitest.setup.ts')
-const hasLocalSetup = existsSync(localSetup)
-
 interface ProjectOverrides {
 	server?: TestProjectConfiguration
 	browser?: TestProjectConfiguration
 }
 
-export const createBaseConfig = (
-	overrides: TestProjectInlineConfiguration,
+function createBaseConfig(
+	root: string,
+	overrides: TestProjectInlineConfiguration = {},
 	projectOverrides: ProjectOverrides = {},
-) =>
-	mergeConfig(
+) {
+	const localSetup = resolve(root, 'vitest.setup.ts')
+	const hasLocalSetup = existsSync(localSetup)
+
+	return mergeConfig(
 		defineConfig({
 			resolve: {
 				tsconfigPaths: true,
 			},
-			plugins: asPlugins([
+			plugins: [
 				tailwindcss(),
 				viteReact({
+					// @vitejs/plugin-react only exposes `babel` via optional types,
+					// but the option is accepted at runtime when @rolldown/plugin-babel is present.
 					babel: {
 						plugins: ['babel-plugin-react-compiler'],
 					},
@@ -127,7 +60,7 @@ export const createBaseConfig = (
 					include: '**/*.svg',
 					svgrOptions: { exportType: 'default' },
 				}),
-			]),
+			],
 			test: {
 				passWithNoTests: true,
 				projects: [
@@ -141,7 +74,7 @@ export const createBaseConfig = (
 					mergeProjectConfig(
 						{
 							extends: true,
-							plugins: [mswHandlersPlugin()],
+							plugins: [createMswHandlersPlugin(root)],
 							test: {
 								name: 'server',
 								include: ['src/**/*.test.ts'],
@@ -155,7 +88,10 @@ export const createBaseConfig = (
 					mergeProjectConfig(
 						{
 							extends: true,
-							plugins: [mswHandlersPlugin(), stylesPlugin()],
+							plugins: [
+								createMswHandlersPlugin(root),
+								createStylesPlugin(root),
+							],
 							test: {
 								name: 'browser',
 								include: ['src/**/*.test.tsx', 'tests/**/*.test.tsx'],
@@ -179,5 +115,14 @@ export const createBaseConfig = (
 		}),
 		overrides,
 	)
+}
 
-export const baseConfig = createBaseConfig({})
+export function createBaseConfigWithRoot(
+	root: string,
+	overrides: TestProjectInlineConfiguration = {},
+	projectOverrides: ProjectOverrides = {},
+) {
+	return createBaseConfig(root, overrides, projectOverrides)
+}
+
+export const baseConfig = createBaseConfig(process.cwd())

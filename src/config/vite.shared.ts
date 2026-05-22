@@ -8,82 +8,17 @@ import svgr from 'vite-plugin-svgr'
 import { existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { Plugin } from 'vite'
 import {
-	defineConfig as defineVitestConfig,
+	defineConfig,
 	mergeConfig,
 	type TestProjectConfiguration,
 	type TestProjectInlineConfiguration,
-} from 'vitest/config'
-import { defineConfig } from 'vite'
+} from 'vite-plus'
 import { playwright } from 'vite-plus/test/browser-playwright'
-
-const HANDLER_LOCATIONS = [
-	'__mocks__/handlers.ts',
-	'__mocks__/handlers.js',
-	'src/mocks/handlers.ts',
-	'src/mocks/handlers.js',
-]
-
-const STYLES_LOCATIONS = ['src/styles.css', 'src/index.css', 'src/app.css']
-
-function mswHandlersPlugin(root: string): Plugin {
-	const virtualModuleId = '@test/handlers'
-	const resolvedVirtualModuleId = '\0' + virtualModuleId
-
-	return {
-		name: 'msw-handlers-resolver',
-		resolveId(id) {
-			if (id === virtualModuleId) {
-				return resolvedVirtualModuleId
-			}
-			return undefined
-		},
-		load(id) {
-			if (id === resolvedVirtualModuleId) {
-				for (const location of HANDLER_LOCATIONS) {
-					const fullPath = resolve(root, location)
-					if (existsSync(fullPath)) {
-						return `export { default } from '${fullPath}'`
-					}
-				}
-				throw new Error(
-					`No MSW handlers found. Expected one of:\n${HANDLER_LOCATIONS.map((l) => `  - ${resolve(root, l)}`).join('\n')}`,
-				)
-			}
-			return undefined
-		},
-	}
-}
-
-function stylesPlugin(root: string): Plugin {
-	const virtualModuleId = '@test/styles'
-	const resolvedVirtualModuleId = '\0' + virtualModuleId
-
-	return {
-		name: 'styles-resolver',
-		resolveId(id) {
-			if (id === virtualModuleId) {
-				return resolvedVirtualModuleId
-			}
-			return undefined
-		},
-		load(id) {
-			if (id === resolvedVirtualModuleId) {
-				for (const location of STYLES_LOCATIONS) {
-					const fullPath = resolve(root, location)
-					if (existsSync(fullPath)) {
-						return `import '${fullPath}'`
-					}
-				}
-				throw new Error(
-					`No styles file found. Expected one of:\n${STYLES_LOCATIONS.map((l) => `  - ${resolve(root, l)}`).join('\n')}`,
-				)
-			}
-			return undefined
-		},
-	}
-}
+import {
+	createMswHandlersPlugin,
+	createStylesPlugin,
+} from './plugins/virtual-modules.ts'
 
 const stylesSetup = '@aamini/config/setup/styles'
 
@@ -91,6 +26,8 @@ function mergeProjectConfig(
 	base: TestProjectConfiguration,
 	overrides: TestProjectConfiguration = {},
 ): TestProjectConfiguration {
+	// Vite's mergeConfig expects Record<string, any> and returns Record<string, any>.
+	// TestProjectConfiguration uses stricter types, so casts are required.
 	return mergeConfig(
 		base as Record<string, any>,
 		overrides as Record<string, any>,
@@ -111,7 +48,7 @@ function createBaseConfig(
 	const hasLocalSetup = existsSync(localSetup)
 
 	return mergeConfig(
-		defineVitestConfig({
+		defineConfig({
 			root,
 			resolve: {
 				tsconfigPaths: true,
@@ -151,7 +88,7 @@ function createBaseConfig(
 					mergeProjectConfig(
 						{
 							extends: true,
-							plugins: [mswHandlersPlugin(root)],
+							plugins: [createMswHandlersPlugin(root)],
 							test: {
 								name: 'server',
 								include: ['src/**/*.test.ts'],
@@ -166,7 +103,10 @@ function createBaseConfig(
 					mergeProjectConfig(
 						{
 							extends: true,
-							plugins: [mswHandlersPlugin(root), stylesPlugin(root)],
+							plugins: [
+								createMswHandlersPlugin(root),
+								createStylesPlugin(root),
+							],
 							test: {
 								name: 'browser',
 								include: ['src/**/*.test.tsx', 'tests/**/*.test.tsx'],
@@ -192,9 +132,24 @@ function createBaseConfig(
 	)
 }
 
-const isVitest = process.env.VITEST === 'true'
+export interface FrameworkConfigOptions {
+	/**
+	 * Whether to include TanStack Start / Nitro / devtools plugins.
+	 * Defaults to false during `vp test`, true otherwise.
+	 */
+	includeFrameworkPlugins?: boolean
+}
 
-function createFrameworkConfig(root: string) {
+function createFrameworkConfig(
+	root: string,
+	options: FrameworkConfigOptions = {},
+) {
+	const includeFrameworkPlugins =
+		options.includeFrameworkPlugins ?? process.env.VITEST !== 'true'
+	const frameworkPlugins = includeFrameworkPlugins
+		? [devtools(), nitro(), tanstackStart()]
+		: []
+
 	return defineConfig({
 		root,
 		resolve: {
@@ -209,7 +164,7 @@ function createFrameworkConfig(root: string) {
 			noExternal: ['recharts'],
 		},
 		plugins: [
-			...(isVitest ? [] : [devtools(), nitro(), tanstackStart()]),
+			...frameworkPlugins,
 			tailwindcss(),
 			viteReact(),
 			babel({ presets: [reactCompilerPreset()] }),
@@ -226,11 +181,12 @@ export function createAppConfig(
 	root: string,
 	projectOverrides: ProjectOverrides = {},
 	overrides: TestProjectInlineConfiguration = {},
+	frameworkOptions: FrameworkConfigOptions = {},
 ) {
 	return {
 		...workspaceConfig,
 		...mergeConfig(
-			createFrameworkConfig(root),
+			createFrameworkConfig(root, frameworkOptions),
 			createBaseConfig(root, overrides, projectOverrides),
 		),
 	}

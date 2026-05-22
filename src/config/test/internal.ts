@@ -22,13 +22,24 @@ export function findHandlerPath(): string {
 	)
 }
 
+function isCallable(value: object): value is (...args: unknown[]) => unknown {
+	return typeof value === 'function'
+}
+
 export function createProxy<T extends object>(getTarget: () => T): T {
-	const handlers: ProxyHandler<object> = {
+	// new Proxy() requires the target to match the proxy type T.
+	// A function target is needed so the proxy can be callable.
+	const proxyTarget = function () {} as unknown as T
+	const handlers: ProxyHandler<T> = {
 		get(_, prop) {
 			return Reflect.get(getTarget(), prop, getTarget())
 		},
-		apply(target, thisArg, args) {
-			return Reflect.apply(getTarget() as any, thisArg, args)
+		apply(_target, thisArg, args: unknown[]) {
+			const target = getTarget()
+			if (!isCallable(target)) {
+				throw new TypeError('Proxy target is not callable')
+			}
+			return Reflect.apply(target, thisArg, args)
 		},
 		has(_, prop) {
 			return prop in getTarget()
@@ -40,6 +51,5 @@ export function createProxy<T extends object>(getTarget: () => T): T {
 			return Reflect.getOwnPropertyDescriptor(getTarget(), prop)
 		},
 	}
-	const proxyTarget = () => {}
-	return new Proxy(proxyTarget, handlers) as T
+	return new Proxy(proxyTarget, handlers)
 }

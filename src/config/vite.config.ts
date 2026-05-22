@@ -7,6 +7,7 @@ export default defineConfig({
 			'vitest.shared.ts',
 			'playwright.shared.config.ts',
 			'msw.ts',
+			'plugins/virtual-modules.ts',
 			'test/browser.ts',
 			'test/database.ts',
 			'test/db.ts',

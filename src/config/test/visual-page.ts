@@ -1,6 +1,6 @@
 import { createElement, type ComponentType, type ReactNode } from 'react'
-import { expect } from 'vitest'
-import { page, type Locator } from 'vitest/browser'
+import { expect } from 'vite-plus/test'
+import { page, type Locator } from 'vite-plus/test/browser'
 import { render, type RenderResult } from 'vitest-browser-react'
 
 interface Viewport {
