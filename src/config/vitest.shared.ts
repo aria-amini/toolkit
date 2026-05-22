@@ -82,7 +82,7 @@ function stylesPlugin(): Plugin {
 	}
 }
 
-const stylesSetup = new URL('setup/styles.ts', import.meta.url).pathname
+const stylesSetup = '@aamini/config/setup/styles'
 
 function asPlugins(plugins: unknown[]): NonNullable<ViteUserConfig['plugins']> {
 	return plugins as NonNullable<ViteUserConfig['plugins']>

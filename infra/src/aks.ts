@@ -20,7 +20,7 @@ const aksSpecs = config.requireObject<{
 const githubRepositoryUrl = `https://github.com/${githubOrganizationName}/${githubRepositoryName}`
 function createKubernetes() {
 	const aksCluster = new azure.containerservice.ManagedCluster('aks-cluster', {
-		dnsPrefix: 'aamini-stack',
+		dnsPrefix: 'aria-amini',
 		resourceGroupName: resourceGroup.name,
 		agentPoolProfiles: [
 			{
