@@ -10,7 +10,7 @@ let mswServer: SetupServer | undefined
 
 async function ensureMswServer(): Promise<SetupServer> {
 	if (!mswServer) {
-		const { default: handlers } = await import(findHandlerPath())
+		const { default: handlers } = await import('@test/handlers')
 		mswServer = setupServer(...handlers)
 	}
 	return mswServer
@@ -18,7 +18,7 @@ async function ensureMswServer(): Promise<SetupServer> {
 
 const extended = baseTest.extend<MswServerFixture>({
 	server: [
-		async ({ }, use) => {
+		async ({}, use) => {
 			const server = await ensureMswServer()
 			server.listen({ onUnhandledRequest: 'bypass' })
 			await use(server)

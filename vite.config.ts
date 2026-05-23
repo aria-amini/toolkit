@@ -1,4 +1,4 @@
-import { workspaceConfig } from './src/config/vite.shared.ts'
+import { workspaceConfig } from './src/config/src/workspace.ts'
 
 export default {
 	...workspaceConfig,

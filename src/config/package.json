@@ -1,6 +1,6 @@
 {
 	"name": "@aamini/config",
-	"version": "0.0.13",
+	"version": "0.0.14",
 	"private": false,
 	"type": "module",
 	"repository": {
@@ -15,15 +15,21 @@
 	"publishConfig": {
 		"access": "public"
 	},
+	"files": ["dist", "tsconfig", "README.md"],
+	"main": "./dist/vite.mjs",
+	"types": "./dist/vite.d.mts",
 	"exports": {
-		"./tsconfig/*": "./tsconfig/tsconfig.*.json",
-		"./vite": "./dist/vite.shared.mjs"
+		"./*": {
+			"types": "./dist/*.d.mts",
+			"default": "./dist/*.mjs"
+		},
+		"./tsconfig/*": "./tsconfig/tsconfig.*.json"
 	},
 	"scripts": {
 		"build": "vp pack",
 		"bump": "npm version patch --no-git-tag-version",
 		"pack": "vp pack",
-		"prepublishOnly": "vp pack"
+		"prepublishOnly": "vp run build"
 	},
 	"peerDependencies": {
 		"@babel/core": "^7.29.0",
@@ -43,6 +49,33 @@
 		"drizzle-seed": "^0.3.1",
 		"get-port": "^7.2.0",
 		"msw": "^2.13.4",
+		"nitro": "*",
+		"pg": "^8.20.0",
+		"react": "^19.2.4",
+		"testcontainers": "^11.12.0",
+		"typescript": "^5.8.3",
+		"vite": "*",
+		"vite-plugin-svgr": "^5.2.0",
+		"vite-plus": "*",
+		"vitest-browser-react": "^2.0.5"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.29.0",
+		"@playwright/test": "^1.59.1",
+		"@rolldown/plugin-babel": "^0.2.3",
+		"@tailwindcss/vite": "^4.2.1",
+		"@tanstack/devtools-vite": "^0.6.0",
+		"@tanstack/react-start": "^1.166.7",
+		"@testcontainers/postgresql": "^11.12.0",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@types/node": "^25.4.0",
+		"@types/pg": "^8.18.0",
+		"@types/react": "^19.2.14",
+		"@vitejs/plugin-react": "^6.0.1",
+		"babel-plugin-react-compiler": "^1.0.0",
+		"drizzle-orm": "^0.45.1",
+		"drizzle-seed": "^0.3.1",
+		"msw": "^2.13.4",
 		"nitro": "latest",
 		"pg": "^8.20.0",
 		"react": "^19.2.4",
@@ -50,10 +83,7 @@
 		"typescript": "^5.8.3",
 		"vite": "npm:@voidzero-dev/vite-plus-core@latest",
 		"vite-plugin-svgr": "^5.2.0",
-		"vite-plus": "*",
+		"vite-plus": "latest",
 		"vitest-browser-react": "^2.0.5"
-	},
-	"devDependencies": {
-		"vite-plus": "latest"
 	}
 }

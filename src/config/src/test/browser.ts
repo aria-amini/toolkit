@@ -1,4 +1,4 @@
-/// <reference path="../virtual-modules.d.ts" />
+/// <reference path="../../virtual-modules.d.ts" />
 import { setupWorker, type SetupWorker } from 'msw/browser'
 import { expect as baseExpect, test as baseTest } from 'vite-plus/test'
 import type { ExpectPollOptions, TestAPI } from 'vite-plus/test'
@@ -28,7 +28,7 @@ async function ensureWorker(): Promise<SetupWorker> {
 
 const extended = baseTest.extend<MswBrowserFixture>({
 	worker: [
-		async ({ }, use) => {
+		async ({}, use) => {
 			const worker = await ensureWorker()
 			await worker.start({ quiet: true, onUnhandledRequest: 'bypass' })
 			await use(worker)
@@ -46,9 +46,6 @@ const extended = baseTest.extend<MswBrowserFixture>({
 })
 
 export { afterEach, beforeEach, describe, vi } from 'vite-plus/test'
-
 export const expect = baseExpect as typeof baseExpect &
 	BrowserElementExpectation
-
-// Vitest's extend() returns an internal CustomAPI type rather than TestAPI.
 export const test = extended as TestAPI<MswBrowserFixture>
