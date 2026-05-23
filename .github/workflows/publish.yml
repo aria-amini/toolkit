@@ -28,9 +28,18 @@ jobs:
       - name: Detect version changes
         id: versions
         run: |
-          CONFIG_PREV=$(git show HEAD^1:packages/config/package.json | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)")
+          get_version() {
+            file="$1"
+            if git show "HEAD^1:$file" > /dev/null 2>&1; then
+              git show "HEAD^1:$file" | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)"
+            else
+              echo ""
+            fi
+          }
+
+          CONFIG_PREV=$(get_version packages/config/package.json)
           CONFIG_CURR=$(node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('packages/config/package.json','utf8'));process.stdout.write(pkg.version)")
-          LIB_PREV=$(git show HEAD^1:packages/lib/package.json | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)")
+          LIB_PREV=$(get_version packages/lib/package.json)
           LIB_CURR=$(node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('packages/lib/package.json','utf8'));process.stdout.write(pkg.version)")
 
           if [ "$CONFIG_CURR" != "$LIB_CURR" ]; then
@@ -38,7 +47,7 @@ jobs:
             exit 1
           fi
 
-          if [ "$CONFIG_PREV" = "$CONFIG_CURR" ] && [ "$LIB_PREV" = "$LIB_CURR" ]; then
+          if [ -n "$CONFIG_PREV" ] && [ -n "$LIB_PREV" ] && [ "$CONFIG_PREV" = "$CONFIG_CURR" ] && [ "$LIB_PREV" = "$LIB_CURR" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
