@@ -11,7 +11,7 @@ export default {
 	},
 	test: {
 		passWithNoTests: true,
-		projects: ['packages/*'],
+		projects: ['packages/*/vite.config.ts'],
 		exclude: [
 			'**/node_modules/**',
 			'**/dist/**',
