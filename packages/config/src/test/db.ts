@@ -75,7 +75,9 @@ export const test = baseTest.extend<DbFixture>({
 			)
 				.withWaitStrategy(Wait.forHealthCheck())
 				.start()
-			const client = new Pool({ connectionString: container.getConnectionUri() })
+			const client = new Pool({
+				connectionString: container.getConnectionUri(),
+			})
 			const db = Object.assign(drizzle({ client }), { $client: client })
 
 			try {

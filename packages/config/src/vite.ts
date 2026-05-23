@@ -76,8 +76,8 @@ export const createAppConfig = ({
 						testTimeout: 30_000,
 						fileParallelism: false,
 					},
-				} satisfies TestProjectConfiguration,
-				projectOverrides?.server ?? {},
+				} satisfies TestProjectConfiguration as Record<string, unknown>,
+				(projectOverrides?.server ?? {}) as Record<string, unknown>,
 			),
 			mergeConfig(
 				{
@@ -94,8 +94,8 @@ export const createAppConfig = ({
 							headless: true,
 						},
 					},
-				} satisfies TestProjectConfiguration,
-				projectOverrides?.browser ?? {},
+				} satisfies TestProjectConfiguration as Record<string, unknown>,
+				(projectOverrides?.browser ?? {}) as Record<string, unknown>,
 			),
 		],
 	},

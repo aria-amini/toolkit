@@ -1,5 +1,5 @@
 {
-	"extends": "@aamini/config/typescript/lib",
+	"extends": "@aamini/config/tsconfig/lib",
 	"compilerOptions": {
 		"paths": {
 			"@aamini/lib/*": ["./src/*"]

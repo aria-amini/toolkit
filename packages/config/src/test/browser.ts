@@ -1,4 +1,3 @@
-/// <reference path="../../virtual-modules.d.ts" />
 import { setupWorker, type SetupWorker } from 'msw/browser'
 import { expect as baseExpect, test as baseTest } from 'vite-plus/test'
 import type { ExpectPollOptions, TestAPI } from 'vite-plus/test'

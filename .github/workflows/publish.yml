@@ -28,10 +28,10 @@ jobs:
       - name: Detect version changes
         id: versions
         run: |
-          CONFIG_PREV=$(git show HEAD^1:src/config/package.json | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)")
-          CONFIG_CURR=$(node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('src/config/package.json','utf8'));process.stdout.write(pkg.version)")
-          LIB_PREV=$(git show HEAD^1:src/lib/package.json | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)")
-          LIB_CURR=$(node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('src/lib/package.json','utf8'));process.stdout.write(pkg.version)")
+          CONFIG_PREV=$(git show HEAD^1:packages/config/package.json | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)")
+          CONFIG_CURR=$(node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('packages/config/package.json','utf8'));process.stdout.write(pkg.version)")
+          LIB_PREV=$(git show HEAD^1:packages/lib/package.json | node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(pkg.version)")
+          LIB_CURR=$(node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('packages/lib/package.json','utf8'));process.stdout.write(pkg.version)")
 
           if [ "$CONFIG_CURR" != "$LIB_CURR" ]; then
             echo "::error::Package versions must match before publishing: @aamini/config=$CONFIG_CURR, @aamini/lib=$LIB_CURR"
@@ -48,18 +48,18 @@ jobs:
       - name: Publish config
         if: steps.versions.outputs.changed == 'true'
         run: npm publish --access public --provenance
-        working-directory: src/config
+        working-directory: packages/config
 
       - name: Publish lib
         if: steps.versions.outputs.changed == 'true'
         run: npm publish --access public --provenance
-        working-directory: src/lib
+        working-directory: packages/lib
 
       - name: Tag release
         if: steps.versions.outputs.changed == 'true'
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          VERSION=$(node -p "require('./src/config/package.json').version")
+          VERSION=$(node -p "require('./packages/config/package.json').version")
           git tag -a "v${VERSION}" -m "v${VERSION}"
           git push origin "v${VERSION}"
