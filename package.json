@@ -4,8 +4,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "vp run --filter './src/*' build",
-		"bump": "vp run --filter './src/*' bump",
+		"build": "vp run --filter './packages/*' build",
+		"bump": "vp run --filter './packages/*' bump",
 		"test": "vp test",
 		"check": "vp check"
 	},

@@ -1,10 +1,17 @@
-import { workspaceConfig } from './src/config/vite.shared.ts'
+import { workspaceConfig } from './packages/config/src/workspace.ts'
 
 export default {
 	...workspaceConfig,
+	fmt: {
+		...workspaceConfig.fmt,
+		ignorePatterns: [
+			...(workspaceConfig.fmt?.ignorePatterns ?? []),
+			'**/infra/charts/**',
+		],
+	},
 	test: {
 		passWithNoTests: true,
-		projects: ['src/*'],
+		projects: ['packages/*/vite.config.ts'],
 		exclude: [
 			'**/node_modules/**',
 			'**/dist/**',

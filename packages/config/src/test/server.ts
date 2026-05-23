@@ -1,8 +1,5 @@
-// oxlint-disable no-empty-pattern
 import { setupServer, type SetupServer } from 'msw/node'
-import { test as baseTest } from 'vitest'
-import type { TestAPI } from 'vitest'
-import { findHandlerPath } from './internal'
+import { test as baseTest } from 'vite-plus/test'
 
 export interface MswServerFixture {
 	server: SetupServer
@@ -13,7 +10,7 @@ let mswServer: SetupServer | undefined
 
 async function ensureMswServer(): Promise<SetupServer> {
 	if (!mswServer) {
-		const { default: handlers } = await import(findHandlerPath())
+		const { default: handlers } = await import('@test/handlers')
 		mswServer = setupServer(...handlers)
 	}
 	return mswServer
@@ -38,6 +35,5 @@ const extended = baseTest.extend<MswServerFixture>({
 	],
 })
 
-export { afterEach, beforeEach, describe, expect, vi } from 'vitest'
-
-export const test = extended as TestAPI<MswServerFixture>
+export { afterEach, beforeEach, describe, expect, vi } from 'vite-plus/test'
+export const test = extended

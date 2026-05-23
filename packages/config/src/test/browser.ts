@@ -1,13 +1,18 @@
-// oxlint-disable typescript-eslint/triple-slash-reference
-/// <reference path="../virtual-modules.d.ts" />
-// oxlint-disable no-empty-pattern
 import { setupWorker, type SetupWorker } from 'msw/browser'
-import { test as baseTest } from 'vitest'
-import type { TestAPI } from 'vitest'
+import { expect as baseExpect, test as baseTest } from 'vite-plus/test'
+import type { ExpectPollOptions, TestAPI } from 'vite-plus/test'
+import type { Locator } from 'vite-plus/test/browser'
 
 export interface MswBrowserFixture {
 	worker: SetupWorker
 	_cleanup: void
+}
+
+type BrowserElementExpectation = {
+	element: <T extends HTMLElement | SVGElement | null | Locator>(
+		element: T,
+		options?: ExpectPollOptions,
+	) => any
 }
 
 let workerSingleton: SetupWorker | undefined
@@ -39,6 +44,7 @@ const extended = baseTest.extend<MswBrowserFixture>({
 	],
 })
 
-export { afterEach, beforeEach, describe, expect, vi } from 'vitest'
-
+export { afterEach, beforeEach, describe, vi } from 'vite-plus/test'
+export const expect = baseExpect as typeof baseExpect &
+	BrowserElementExpectation
 export const test = extended as TestAPI<MswBrowserFixture>
