@@ -1,6 +1,4 @@
-// oxlint-disable typescript-eslint/triple-slash-reference
 /// <reference path="../virtual-modules.d.ts" />
-// oxlint-disable no-empty-pattern
 import { setupWorker, type SetupWorker } from 'msw/browser'
 import { expect as baseExpect, test as baseTest } from 'vite-plus/test'
 import type { ExpectPollOptions, TestAPI } from 'vite-plus/test'
@@ -30,7 +28,7 @@ async function ensureWorker(): Promise<SetupWorker> {
 
 const extended = baseTest.extend<MswBrowserFixture>({
 	worker: [
-		async ({}, use) => {
+		async ({ }, use) => {
 			const worker = await ensureWorker()
 			await worker.start({ quiet: true, onUnhandledRequest: 'bypass' })
 			await use(worker)

@@ -1,11 +1,8 @@
-// oxlint-disable no-empty-pattern
 import { setupServer, SetupServer } from 'msw/node'
 import { resolve } from 'node:path'
 import { test as baseTest } from 'vite-plus/test'
-import type { TestAPI } from 'vite-plus/test'
-import type { Database } from './database'
-import { seedDatabase } from './database'
-import { findHandlerPath } from './internal'
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
+import type { Pool } from 'pg'
 
 const DEFAULT_SCHEMA_PATH = 'src/db/tables.ts'
 const DEFAULT_MIGRATIONS_PATH = 'src/db/migrations'
@@ -36,9 +33,9 @@ async function ensureMswServer(): Promise<SetupServer> {
 	return mswServer
 }
 
-let extended = baseTest.extend<DbFixture>({
+export const test = baseTest.extend<DbFixture>({
 	server: [
-		async ({}, use) => {
+		async ({ }, use) => {
 			const server = await ensureMswServer()
 			server.listen({ onUnhandledRequest: 'bypass' })
 			await use(server)
@@ -53,7 +50,7 @@ let extended = baseTest.extend<DbFixture>({
 		},
 		{ auto: true },
 	],
-	seedFunction: [async ({}, use) => use(async () => {}), { scope: 'file' }],
+	seedFunction: [async ({ }, use) => use(async () => { }), { scope: 'file' }],
 	db: [
 		async ({ seedFunction }: Pick<DbFixture, 'seedFunction'>, use) => {
 			const { PostgreSqlContainer } = await import('@testcontainers/postgresql')
@@ -94,16 +91,48 @@ let extended = baseTest.extend<DbFixture>({
 
 export { afterEach, beforeEach, describe, expect, vi } from 'vite-plus/test'
 
-// Vitest's extend() returns an internal CustomAPI type rather than TestAPI.
-export const test = extended as TestAPI<DbFixture>
-
 export function initDb(
 	seedFunction: (db: Database) => Promise<void>,
 	config: DbConfig = {},
 ) {
 	dbConfig = config
 	extended = extended.override({
-		seedFunction: [async ({}, use) => use(seedFunction), { scope: 'file' }],
+		seedFunction: [async ({ }, use) => use(seedFunction), { scope: 'file' }],
 		// Vitest's override() returns a broad union; narrow back to the fixture type.
 	}) as typeof extended
+}
+
+const DEFAULT_EXTENSIONS = ['pg_trgm']
+
+export type Database = NodePgDatabase & {
+	$client: Pool
+}
+
+export interface SeedDatabaseOptions {
+	schemaPath: string
+	migrationsFolder: string
+	seedFunction?: (db: Database) => Promise<void>
+	extensions?: string[]
+}
+
+export async function seedDatabase(
+	db: Database,
+	{
+		schemaPath,
+		migrationsFolder,
+		seedFunction,
+		extensions = DEFAULT_EXTENSIONS,
+	}: SeedDatabaseOptions,
+) {
+	const { migrate } = await import('drizzle-orm/node-postgres/migrator')
+	const { reset } = await import('drizzle-seed')
+
+	const schema = await import(/* @vite-ignore */ schemaPath)
+
+	for (const ext of extensions) {
+		await db.execute(`CREATE EXTENSION IF NOT EXISTS "${ext}"`)
+	}
+	await migrate(db, { migrationsFolder })
+	await reset(db, schema)
+	if (seedFunction) await seedFunction(db)
 }

@@ -1,8 +1,5 @@
-// oxlint-disable no-empty-pattern
 import { setupServer, type SetupServer } from 'msw/node'
 import { test as baseTest } from 'vite-plus/test'
-import type { TestAPI } from 'vite-plus/test'
-import { findHandlerPath } from './internal'
 
 export interface MswServerFixture {
 	server: SetupServer
@@ -21,7 +18,7 @@ async function ensureMswServer(): Promise<SetupServer> {
 
 const extended = baseTest.extend<MswServerFixture>({
 	server: [
-		async ({}, use) => {
+		async ({ }, use) => {
 			const server = await ensureMswServer()
 			server.listen({ onUnhandledRequest: 'bypass' })
 			await use(server)
@@ -39,6 +36,4 @@ const extended = baseTest.extend<MswServerFixture>({
 })
 
 export { afterEach, beforeEach, describe, expect, vi } from 'vite-plus/test'
-
-// Vitest's extend() returns an internal CustomAPI type rather than TestAPI.
-export const test = extended as TestAPI<MswServerFixture>
+export const test = extended
