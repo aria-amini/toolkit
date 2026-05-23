@@ -134,8 +134,8 @@ function createBaseConfig(
 
 export interface FrameworkConfigOptions {
 	/**
-	 * Whether to include TanStack Start / Nitro / devtools plugins.
-	 * Defaults to false during `vp test`, true otherwise.
+	 * Whether to include framework plugins. During `vp test`, only the
+	 * TanStack Start transform is included; Nitro/devtools are app runtime plugins.
 	 */
 	includeFrameworkPlugins?: boolean
 }
@@ -144,10 +144,11 @@ function createFrameworkConfig(
 	root: string,
 	options: FrameworkConfigOptions = {},
 ) {
-	const includeFrameworkPlugins =
-		options.includeFrameworkPlugins ?? process.env.VITEST !== 'true'
+	const includeFrameworkPlugins = options.includeFrameworkPlugins ?? true
 	const frameworkPlugins = includeFrameworkPlugins
-		? [devtools(), nitro(), tanstackStart()]
+		? process.env.VITEST === 'true'
+			? [tanstackStart()]
+			: [devtools(), nitro(), tanstackStart()]
 		: []
 
 	return defineConfig({

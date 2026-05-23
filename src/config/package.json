@@ -75,7 +75,6 @@
 		"@types/pg": "^8.18.0",
 		"@types/react": "^19.2.14",
 		"@vitejs/plugin-react": "^6.0.1",
-		"@vitest/browser-playwright": "4.1.5",
 		"babel-plugin-react-compiler": "^1.0.0",
 		"drizzle-orm": "^0.45.1",
 		"drizzle-seed": "^0.3.1",
@@ -87,14 +86,16 @@
 		"testcontainers": "^11.12.0",
 		"typescript": "^5.8.3",
 		"vite": "npm:@voidzero-dev/vite-plus-core@latest",
-		"vite-plus": "latest",
 		"vite-plugin-svgr": "^5.2.0",
-		"vitest": "npm:@voidzero-dev/vite-plus-test@latest",
 		"vitest-browser-react": "^2.0.5"
+	},
+	"peerDependencies": {
+		"vite-plus": "*"
 	},
 	"devDependencies": {
 		"@types/babel__core": "^7.20.5",
 		"@vitest/ui": "4.1.5",
-		"playwright": "*"
+		"playwright": "*",
+		"vite-plus": "latest"
 	}
 }
