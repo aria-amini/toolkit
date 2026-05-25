@@ -1,4 +1,4 @@
-import { workspaceConfig } from './packages/config/src/vite.ts'
+import { workspaceConfig } from "./packages/config/src/vite.ts";
 
 export default {
 	...workspaceConfig,
@@ -6,18 +6,18 @@ export default {
 		...workspaceConfig.fmt,
 		ignorePatterns: [
 			...(workspaceConfig.fmt?.ignorePatterns ?? []),
-			'**/infra/charts/**',
+			"**/infra/charts/**",
 		],
 	},
 	test: {
 		passWithNoTests: true,
-		projects: ['packages/*/vite.config.ts'],
+		projects: ["packages/*/vite.config.ts"],
 		exclude: [
-			'**/node_modules/**',
-			'**/dist/**',
-			'**/.output/**',
-			'**/.vercel/**',
-			'**/e2e/**',
+			"**/node_modules/**",
+			"**/dist/**",
+			"**/.output/**",
+			"**/.vercel/**",
+			"**/e2e/**",
 		],
 	},
-}
+};

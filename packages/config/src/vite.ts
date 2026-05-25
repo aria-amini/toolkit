@@ -8,7 +8,7 @@ import svgr from "vite-plugin-svgr";
 import { resolve } from "node:path";
 import {
 	mergeConfig,
-	ViteUserConfig,
+	type UserConfig,
 	type TestProjectConfiguration,
 } from "vite-plus";
 import { playwright } from "vite-plus/test/browser-playwright";
@@ -16,12 +16,10 @@ import {
 	createMswHandlersPlugin,
 	createStylesPlugin,
 } from "./plugins/virtual-modules.ts";
-import { defineConfig as defineLintConfig } from "vite-plus/lint";
-import { defineConfig as defineFmtConfig } from "vite-plus/fmt";
 
 const stylesSetup = "@aamini/config/setup/styles";
 
-const fmt = defineFmtConfig({
+export const fmt = {
 	singleQuote: true,
 	semi: false,
 	useTabs: true,
@@ -41,9 +39,9 @@ const fmt = defineFmtConfig({
 			options: { useTabs: false },
 		},
 	],
-});
+} satisfies UserConfig["fmt"];
 
-const lint = defineLintConfig({
+export const lint = {
 	plugins: [
 		"eslint",
 		"unicorn",
@@ -83,30 +81,66 @@ const lint = defineLintConfig({
 	env: { builtin: true },
 	globals: {},
 	ignorePatterns: ["**/dist/**"],
-});
-
-export const workspaceConfig = {
-	fmt,
-	lint,
-	staged: {
-		"*.{js,ts,tsx}": "vp check --fix",
-	},
-};
+} satisfies UserConfig["lint"];
 
 interface ProjectOverrides {
 	server?: TestProjectConfiguration;
 	browser?: TestProjectConfiguration;
 }
 
-export interface AppConfigOptions {
-	root?: string;
-	projectOverrides?: ProjectOverrides;
-}
+export const test = (
+	projectOverrides: ProjectOverrides,
+): UserConfig["test"] => ({
+	passWithNoTests: true,
+	projects: [
+		{
+			extends: true,
+			test: {
+				name: "unit",
+				include: ["src/**/*.test.unit.ts"],
+			},
+		},
+		mergeConfig(
+			{
+				extends: true,
+				plugins: [createMswHandlersPlugin()],
+				test: {
+					name: "server",
+					include: ["src/**/*.test.ts"],
+					testTimeout: 30_000,
+					fileParallelism: false,
+				},
+			} satisfies TestProjectConfiguration as Record<string, unknown>,
+			(projectOverrides?.server ?? {}) as Record<string, unknown>,
+		),
+		mergeConfig(
+			{
+				extends: true,
+				plugins: [createMswHandlersPlugin(), createStylesPlugin()],
+				test: {
+					name: "browser",
+					include: ["src/**/*.test.tsx", "tests/**/*.test.tsx"],
+					setupFiles: [stylesSetup],
+					browser: {
+						instances: [{ browser: "chromium" }],
+						provider: playwright(),
+						enabled: true,
+						headless: true,
+					},
+				},
+			} satisfies TestProjectConfiguration as Record<string, unknown>,
+			(projectOverrides?.browser ?? {}) as Record<string, unknown>,
+		),
+	],
+});
 
 export const createAppConfig = ({
 	root = process.cwd(),
 	projectOverrides,
-}: AppConfigOptions = {}): ViteUserConfig => ({
+}: {
+	root: string;
+	projectOverrides?: ProjectOverrides;
+}): UserConfig => ({
 	root,
 	resolve: {
 		tsconfigPaths: true,
@@ -130,50 +164,10 @@ export const createAppConfig = ({
 			svgrOptions: { exportType: "default" },
 		}),
 	],
-	fmt: workspaceConfig.fmt,
-	lint: workspaceConfig.lint,
-	staged: workspaceConfig.staged,
-	test: {
-		passWithNoTests: true,
-		projects: [
-			{
-				extends: true,
-				test: {
-					name: "unit",
-					include: ["src/**/*.test.unit.ts"],
-				},
-			},
-			mergeConfig(
-				{
-					extends: true,
-					plugins: [createMswHandlersPlugin()],
-					test: {
-						name: "server",
-						include: ["src/**/*.test.ts"],
-						testTimeout: 30_000,
-						fileParallelism: false,
-					},
-				} satisfies TestProjectConfiguration as Record<string, unknown>,
-				(projectOverrides?.server ?? {}) as Record<string, unknown>,
-			),
-			mergeConfig(
-				{
-					extends: true,
-					plugins: [createMswHandlersPlugin(), createStylesPlugin()],
-					test: {
-						name: "browser",
-						include: ["src/**/*.test.tsx", "tests/**/*.test.tsx"],
-						setupFiles: [stylesSetup],
-						browser: {
-							instances: [{ browser: "chromium" }],
-							provider: playwright(),
-							enabled: true,
-							headless: true,
-						},
-					},
-				} satisfies TestProjectConfiguration as Record<string, unknown>,
-				(projectOverrides?.browser ?? {}) as Record<string, unknown>,
-			),
-		],
+	fmt: fmt,
+	lint: lint,
+	staged: {
+		"*.{js,ts,tsx}": "vp check --fix",
 	},
+	test: test(projectOverrides),
 });
