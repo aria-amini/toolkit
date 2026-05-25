@@ -1,6 +1,6 @@
 {
 	"name": "@aamini/config",
-	"version": "0.0.15",
+	"version": "0.0.16",
 	"private": false,
 	"type": "module",
 	"repository": {
@@ -23,6 +23,11 @@
 	"main": "./dist/vite.mjs",
 	"types": "./dist/vite.d.mts",
 	"exports": {
+		"./setup/styles": "./src/setup/styles.ts",
+		"./test/browser": "./src/test/browser.ts",
+		"./test/db": "./src/test/db.ts",
+		"./test/server": "./src/test/server.ts",
+		"./test/visual-page": "./src/test/visual-page.tsx",
 		"./*": {
 			"types": "./dist/*.d.mts",
 			"default": "./dist/*.mjs"
@@ -31,6 +36,7 @@
 	},
 	"scripts": {
 		"build": "vp pack",
+		"build:watch": "vp pack --watch",
 		"bump": "npm version patch --no-git-tag-version",
 		"pack": "vp pack",
 		"prepublishOnly": "vp run build"

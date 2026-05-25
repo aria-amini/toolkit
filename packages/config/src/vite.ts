@@ -1,56 +1,133 @@
-import { nitro } from 'nitro/vite'
-import { devtools } from '@tanstack/devtools-vite'
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
-import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import babel from '@rolldown/plugin-babel'
-import svgr from 'vite-plugin-svgr'
-import { resolve } from 'node:path'
-import { mergeConfig, type TestProjectConfiguration } from 'vite-plus'
-import { playwright } from 'vite-plus/test/browser-playwright'
+import { nitro } from "nitro/vite";
+import { devtools } from "@tanstack/devtools-vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import babel from "@rolldown/plugin-babel";
+import svgr from "vite-plugin-svgr";
+import { resolve } from "node:path";
+import {
+	mergeConfig,
+	ViteUserConfig,
+	type TestProjectConfiguration,
+} from "vite-plus";
+import { playwright } from "vite-plus/test/browser-playwright";
 import {
 	createMswHandlersPlugin,
 	createStylesPlugin,
-} from './plugins/virtual-modules.ts'
-import { workspaceConfig } from './workspace.ts'
+} from "./plugins/virtual-modules.ts";
+import { defineConfig as defineLintConfig } from "vite-plus/lint";
+import { defineConfig as defineFmtConfig } from "vite-plus/fmt";
 
-const stylesSetup = '@aamini/config/setup/styles'
+const stylesSetup = "@aamini/config/setup/styles";
+
+const fmt = defineFmtConfig({
+	singleQuote: true,
+	semi: false,
+	useTabs: true,
+	experimentalTailwindcss: {},
+	printWidth: 80,
+	experimentalSortPackageJson: false,
+	proseWrap: "always",
+	ignorePatterns: [
+		"**/.output",
+		"**/dist/**",
+		"pnpm-lock.yaml",
+		"**/routeTree.gen.ts",
+	],
+	overrides: [
+		{
+			files: ["*.{yaml,yml}"],
+			options: { useTabs: false },
+		},
+	],
+});
+
+const lint = defineLintConfig({
+	plugins: [
+		"eslint",
+		"unicorn",
+		"typescript",
+		"oxc",
+		"react",
+		"react-perf",
+		"import",
+		"jsdoc",
+		"jsx-a11y",
+		"node",
+		"promise",
+	],
+	categories: {},
+	options: {
+		typeAware: true,
+		typeCheck: true,
+	},
+	rules: {
+		"no-empty-pattern": "off",
+		"no-console": ["error", { allow: ["warn", "error"] }],
+	},
+	settings: {
+		"jsx-a11y": { components: {}, attributes: {} },
+		react: { formComponents: [], linkComponents: [] },
+		jsdoc: {
+			ignorePrivate: false,
+			ignoreInternal: false,
+			ignoreReplacesDocs: true,
+			overrideReplacesDocs: true,
+			augmentsExtendsReplacesDocs: false,
+			implementsReplacesDocs: false,
+			exemptDestructuredRootsFromChecks: false,
+			tagNamePreference: {},
+		},
+	},
+	env: { builtin: true },
+	globals: {},
+	ignorePatterns: ["**/dist/**"],
+});
+
+export const workspaceConfig = {
+	fmt,
+	lint,
+	staged: {
+		"*.{js,ts,tsx}": "vp check --fix",
+	},
+};
 
 interface ProjectOverrides {
-	server?: TestProjectConfiguration
-	browser?: TestProjectConfiguration
+	server?: TestProjectConfiguration;
+	browser?: TestProjectConfiguration;
 }
 
 export interface AppConfigOptions {
-	root?: string
-	projectOverrides?: ProjectOverrides
+	root?: string;
+	projectOverrides?: ProjectOverrides;
 }
 
 export const createAppConfig = ({
 	root = process.cwd(),
 	projectOverrides,
-}: AppConfigOptions = {}): Record<string, unknown> => ({
+}: AppConfigOptions = {}): ViteUserConfig => ({
 	root,
 	resolve: {
 		tsconfigPaths: true,
-		dedupe: ['react', 'react-dom'],
+		dedupe: ["react", "react-dom"],
 		alias: [
-			{ find: '@/mocks', replacement: resolve(root, '__mocks__') },
-			{ find: '@', replacement: resolve(root, 'src') },
-			{ find: '@tests', replacement: resolve(root, 'tests') },
+			{ find: "@/mocks", replacement: resolve(root, "__mocks__") },
+			{ find: "@", replacement: resolve(root, "src") },
+			{ find: "@tests", replacement: resolve(root, "tests") },
 		],
 	},
 	plugins: [
 		tanstackStart(),
-		...(process.env.VITEST === 'true'
+		...(process.env.VITEST === "true"
 			? []
 			: [devtools({ injectSource: { enabled: false } }), nitro()]),
 		tailwindcss(),
 		viteReact(),
 		babel({ presets: [reactCompilerPreset()] }),
 		svgr({
-			include: '**/*.svg',
-			svgrOptions: { exportType: 'default' },
+			include: "**/*.svg",
+			svgrOptions: { exportType: "default" },
 		}),
 	],
 	fmt: workspaceConfig.fmt,
@@ -62,8 +139,8 @@ export const createAppConfig = ({
 			{
 				extends: true,
 				test: {
-					name: 'unit',
-					include: ['src/**/*.test.unit.ts'],
+					name: "unit",
+					include: ["src/**/*.test.unit.ts"],
 				},
 			},
 			mergeConfig(
@@ -71,8 +148,8 @@ export const createAppConfig = ({
 					extends: true,
 					plugins: [createMswHandlersPlugin()],
 					test: {
-						name: 'server',
-						include: ['src/**/*.test.ts'],
+						name: "server",
+						include: ["src/**/*.test.ts"],
 						testTimeout: 30_000,
 						fileParallelism: false,
 					},
@@ -84,11 +161,11 @@ export const createAppConfig = ({
 					extends: true,
 					plugins: [createMswHandlersPlugin(), createStylesPlugin()],
 					test: {
-						name: 'browser',
-						include: ['src/**/*.test.tsx', 'tests/**/*.test.tsx'],
+						name: "browser",
+						include: ["src/**/*.test.tsx", "tests/**/*.test.tsx"],
 						setupFiles: [stylesSetup],
 						browser: {
-							instances: [{ browser: 'chromium' }],
+							instances: [{ browser: "chromium" }],
 							provider: playwright(),
 							enabled: true,
 							headless: true,
@@ -99,7 +176,4 @@ export const createAppConfig = ({
 			),
 		],
 	},
-})
-
-export const viteConfig: typeof createAppConfig = createAppConfig
-export { workspaceConfig } from './workspace.ts'
+});
