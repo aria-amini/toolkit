@@ -59,9 +59,7 @@ export async function expectComponentScreenshot({
 		}
 	}
 
-	await expect
-		.element(target(screen))
-		.toMatchScreenshot(`${name}.png`, {
-			screenshotOptions: { scale: 'css' },
-		})
+	await expect.element(target(screen)).toMatchScreenshot(`${name}.png`, {
+		screenshotOptions: { scale: 'css' },
+	})
 }
