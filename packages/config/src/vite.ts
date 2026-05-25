@@ -1,23 +1,23 @@
-import { nitro } from "nitro/vite";
-import { devtools } from "@tanstack/devtools-vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import babel from "@rolldown/plugin-babel";
-import svgr from "vite-plugin-svgr";
-import { resolve } from "node:path";
+import { nitro } from 'nitro/vite'
+import { devtools } from '@tanstack/devtools-vite'
+import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import babel from '@rolldown/plugin-babel'
+import svgr from 'vite-plugin-svgr'
+import { resolve } from 'node:path'
 import {
 	mergeConfig,
 	type UserConfig,
 	type TestProjectConfiguration,
-} from "vite-plus";
-import { playwright } from "vite-plus/test/browser-playwright";
+} from 'vite-plus'
+import { playwright } from 'vite-plus/test/browser-playwright'
 import {
 	createMswHandlersPlugin,
 	createStylesPlugin,
-} from "./plugins/virtual-modules.ts";
+} from './plugins/virtual-modules.ts'
 
-const stylesSetup = "@aamini/config/setup/styles";
+const stylesSetup = '@aamini/config/setup/styles'
 
 export const fmt = {
 	singleQuote: true,
@@ -26,34 +26,34 @@ export const fmt = {
 	experimentalTailwindcss: {},
 	printWidth: 80,
 	experimentalSortPackageJson: false,
-	proseWrap: "always",
+	proseWrap: 'always',
 	ignorePatterns: [
-		"**/.output",
-		"**/dist/**",
-		"pnpm-lock.yaml",
-		"**/routeTree.gen.ts",
+		'**/.output',
+		'**/dist/**',
+		'pnpm-lock.yaml',
+		'**/routeTree.gen.ts',
 	],
 	overrides: [
 		{
-			files: ["*.{yaml,yml}"],
+			files: ['*.{yaml,yml}'],
 			options: { useTabs: false },
 		},
 	],
-} satisfies UserConfig["fmt"];
+} satisfies UserConfig['fmt']
 
 export const lint = {
 	plugins: [
-		"eslint",
-		"unicorn",
-		"typescript",
-		"oxc",
-		"react",
-		"react-perf",
-		"import",
-		"jsdoc",
-		"jsx-a11y",
-		"node",
-		"promise",
+		'eslint',
+		'unicorn',
+		'typescript',
+		'oxc',
+		'react',
+		'react-perf',
+		'import',
+		'jsdoc',
+		'jsx-a11y',
+		'node',
+		'promise',
 	],
 	categories: {},
 	options: {
@@ -61,11 +61,11 @@ export const lint = {
 		typeCheck: true,
 	},
 	rules: {
-		"no-empty-pattern": "off",
-		"no-console": ["error", { allow: ["warn", "error"] }],
+		'no-empty-pattern': 'off',
+		'no-console': ['error', { allow: ['warn', 'error'] }],
 	},
 	settings: {
-		"jsx-a11y": { components: {}, attributes: {} },
+		'jsx-a11y': { components: {}, attributes: {} },
 		react: { formComponents: [], linkComponents: [] },
 		jsdoc: {
 			ignorePrivate: false,
@@ -80,24 +80,24 @@ export const lint = {
 	},
 	env: { builtin: true },
 	globals: {},
-	ignorePatterns: ["**/dist/**"],
-} satisfies UserConfig["lint"];
+	ignorePatterns: ['**/dist/**'],
+} satisfies UserConfig['lint']
 
 interface ProjectOverrides {
-	server?: TestProjectConfiguration;
-	browser?: TestProjectConfiguration;
+	server?: TestProjectConfiguration
+	browser?: TestProjectConfiguration
 }
 
 export const test = (
-	projectOverrides: ProjectOverrides,
-): UserConfig["test"] => ({
+	projectOverrides?: ProjectOverrides,
+): UserConfig['test'] => ({
 	passWithNoTests: true,
 	projects: [
 		{
 			extends: true,
 			test: {
-				name: "unit",
-				include: ["src/**/*.test.unit.ts"],
+				name: 'unit',
+				include: ['src/**/*.test.unit.ts'],
 			},
 		},
 		mergeConfig(
@@ -105,8 +105,8 @@ export const test = (
 				extends: true,
 				plugins: [createMswHandlersPlugin()],
 				test: {
-					name: "server",
-					include: ["src/**/*.test.ts"],
+					name: 'server',
+					include: ['src/**/*.test.ts'],
 					testTimeout: 30_000,
 					fileParallelism: false,
 				},
@@ -118,11 +118,11 @@ export const test = (
 				extends: true,
 				plugins: [createMswHandlersPlugin(), createStylesPlugin()],
 				test: {
-					name: "browser",
-					include: ["src/**/*.test.tsx", "tests/**/*.test.tsx"],
+					name: 'browser',
+					include: ['src/**/*.test.tsx', 'tests/**/*.test.tsx'],
 					setupFiles: [stylesSetup],
 					browser: {
-						instances: [{ browser: "chromium" }],
+						instances: [{ browser: 'chromium' }],
 						provider: playwright(),
 						enabled: true,
 						headless: true,
@@ -132,42 +132,42 @@ export const test = (
 			(projectOverrides?.browser ?? {}) as Record<string, unknown>,
 		),
 	],
-});
+})
 
 export const createAppConfig = ({
 	root = process.cwd(),
 	projectOverrides,
 }: {
-	root: string;
-	projectOverrides?: ProjectOverrides;
+	root?: string
+	projectOverrides?: ProjectOverrides
 }): UserConfig => ({
 	root,
 	resolve: {
 		tsconfigPaths: true,
-		dedupe: ["react", "react-dom"],
+		dedupe: ['react', 'react-dom'],
 		alias: [
-			{ find: "@/mocks", replacement: resolve(root, "__mocks__") },
-			{ find: "@", replacement: resolve(root, "src") },
-			{ find: "@tests", replacement: resolve(root, "tests") },
+			{ find: '@/mocks', replacement: resolve(root, '__mocks__') },
+			{ find: '@', replacement: resolve(root, 'src') },
+			{ find: '@tests', replacement: resolve(root, 'tests') },
 		],
 	},
 	plugins: [
 		tanstackStart(),
-		...(process.env.VITEST === "true"
+		...(process.env.VITEST === 'true'
 			? []
 			: [devtools({ injectSource: { enabled: false } }), nitro()]),
 		tailwindcss(),
 		viteReact(),
 		babel({ presets: [reactCompilerPreset()] }),
 		svgr({
-			include: "**/*.svg",
-			svgrOptions: { exportType: "default" },
+			include: '**/*.svg',
+			svgrOptions: { exportType: 'default' },
 		}),
 	],
 	fmt: fmt,
 	lint: lint,
 	staged: {
-		"*.{js,ts,tsx}": "vp check --fix",
+		'*.{js,ts,tsx}': 'vp check --fix',
 	},
 	test: test(projectOverrides),
-});
+})
