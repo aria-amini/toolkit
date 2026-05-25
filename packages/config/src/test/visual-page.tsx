@@ -16,7 +16,9 @@ async function waitForImages() {
 type ScreenshotOptions = {
 	component: ComponentType
 	name: string
-	waitFor: (screen: Awaited<ReturnType<typeof render>>) => unknown
+	waitFor: (
+		screen: Awaited<ReturnType<typeof render>>,
+	) => HTMLElement | SVGElement | null
 	prepare?: (screen: Awaited<ReturnType<typeof render>>) => void | Promise<void>
 	setup?: () => void | Promise<void>
 	target?: (screen: Awaited<ReturnType<typeof render>>) => HTMLElement
@@ -59,7 +61,9 @@ export async function expectComponentScreenshot({
 
 	const screenshotTarget = fullPage ? () => container : target
 
-	await expect.element(screenshotTarget(screen)).toMatchScreenshot(`${name}.png`, {
-		screenshotOptions: { scale: 'css' },
-	})
+	await expect
+		.element(screenshotTarget(screen))
+		.toMatchScreenshot(`${name}.png`, {
+			screenshotOptions: { scale: 'css' },
+		})
 }
