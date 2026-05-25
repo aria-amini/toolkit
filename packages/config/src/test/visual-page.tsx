@@ -40,10 +40,6 @@ export async function expectComponentScreenshot({
 	document.body.replaceChildren()
 	await setup?.()
 	await page.viewport(viewport.width, viewport.height)
-	document.documentElement.style.setProperty(
-		'--visual-viewport-height',
-		`${viewport.height}px`,
-	)
 
 	const container = document.body.appendChild(document.createElement('div'))
 	container.style.width = '100vw'
@@ -56,14 +52,14 @@ export async function expectComponentScreenshot({
 	await waitForImages()
 
 	if (fullPage) {
-		await page.viewport(viewport.width, Math.ceil(container.scrollHeight))
+		const frame = window.frameElement as HTMLIFrameElement | null
+		if (frame) {
+			frame.style.width = `${document.body.scrollWidth}px`
+			frame.style.height = `${document.body.scrollHeight}px`
+		}
 	}
 
-	const screenshotTarget = fullPage ? () => container : target
-
-	await expect
-		.element(screenshotTarget(screen))
-		.toMatchScreenshot(`${name}.png`, {
-			screenshotOptions: { scale: 'css' },
-		})
+	await expect.element(target(screen)).toMatchScreenshot(`${name}.png`, {
+		screenshotOptions: { scale: 'css' },
+	})
 }
