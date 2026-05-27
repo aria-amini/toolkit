@@ -1,14 +1,11 @@
-import { workspaceConfig } from './packages/config/src/workspace.ts'
+import { mergeConfig } from 'vite-plus'
+import { fmt, lint } from './packages/config/src/vite.ts'
 
 export default {
-	...workspaceConfig,
-	fmt: {
-		...workspaceConfig.fmt,
-		ignorePatterns: [
-			...(workspaceConfig.fmt?.ignorePatterns ?? []),
-			'**/infra/charts/**',
-		],
-	},
+	lint: lint,
+	fmt: mergeConfig(fmt, {
+		ignorePatterns: ['**/infra/charts/**'],
+	}),
 	test: {
 		passWithNoTests: true,
 		projects: ['packages/*/vite.config.ts'],

@@ -6,30 +6,141 @@ import tailwindcss from '@tailwindcss/vite'
 import babel from '@rolldown/plugin-babel'
 import svgr from 'vite-plugin-svgr'
 import { resolve } from 'node:path'
-import { mergeConfig, type TestProjectConfiguration } from 'vite-plus'
+import {
+	mergeConfig,
+	type UserConfig,
+	type TestProjectConfiguration,
+} from 'vite-plus'
 import { playwright } from 'vite-plus/test/browser-playwright'
 import {
 	createMswHandlersPlugin,
 	createStylesPlugin,
 } from './plugins/virtual-modules.ts'
-import { workspaceConfig } from './workspace.ts'
 
 const stylesSetup = '@aamini/config/setup/styles'
+
+export const fmt = {
+	singleQuote: true,
+	semi: false,
+	useTabs: true,
+	experimentalTailwindcss: {},
+	printWidth: 80,
+	experimentalSortPackageJson: false,
+	proseWrap: 'always',
+	ignorePatterns: [
+		'**/.output',
+		'**/dist/**',
+		'pnpm-lock.yaml',
+		'**/routeTree.gen.ts',
+	],
+	overrides: [
+		{
+			files: ['*.{yaml,yml}'],
+			options: { useTabs: false },
+		},
+	],
+} satisfies UserConfig['fmt']
+
+export const lint = {
+	plugins: [
+		'eslint',
+		'unicorn',
+		'typescript',
+		'oxc',
+		'react',
+		'react-perf',
+		'import',
+		'jsdoc',
+		'jsx-a11y',
+		'node',
+		'promise',
+	],
+	categories: {},
+	options: {
+		typeAware: true,
+		typeCheck: true,
+	},
+	rules: {
+		'no-empty-pattern': 'off',
+		'no-console': ['error', { allow: ['warn', 'error'] }],
+	},
+	settings: {
+		'jsx-a11y': { components: {}, attributes: {} },
+		react: { formComponents: [], linkComponents: [] },
+		jsdoc: {
+			ignorePrivate: false,
+			ignoreInternal: false,
+			ignoreReplacesDocs: true,
+			overrideReplacesDocs: true,
+			augmentsExtendsReplacesDocs: false,
+			implementsReplacesDocs: false,
+			exemptDestructuredRootsFromChecks: false,
+			tagNamePreference: {},
+		},
+	},
+	env: { builtin: true },
+	globals: {},
+	ignorePatterns: ['**/dist/**'],
+} satisfies UserConfig['lint']
 
 interface ProjectOverrides {
 	server?: TestProjectConfiguration
 	browser?: TestProjectConfiguration
 }
 
-export interface AppConfigOptions {
-	root?: string
-	projectOverrides?: ProjectOverrides
-}
+export const test = (
+	projectOverrides?: ProjectOverrides,
+): UserConfig['test'] => ({
+	passWithNoTests: true,
+	projects: [
+		{
+			extends: true,
+			test: {
+				name: 'unit',
+				include: ['src/**/*.test.unit.ts'],
+			},
+		},
+		mergeConfig(
+			{
+				extends: true,
+				plugins: [createMswHandlersPlugin()],
+				test: {
+					name: 'server',
+					include: ['src/**/*.test.ts'],
+					testTimeout: 30_000,
+					fileParallelism: false,
+				},
+			} satisfies TestProjectConfiguration as Record<string, unknown>,
+			(projectOverrides?.server ?? {}) as Record<string, unknown>,
+		),
+		mergeConfig(
+			{
+				extends: true,
+				plugins: [createMswHandlersPlugin(), createStylesPlugin()],
+				test: {
+					name: 'browser',
+					include: ['src/**/*.test.tsx', 'tests/**/*.test.tsx'],
+					setupFiles: [stylesSetup],
+					browser: {
+						instances: [{ browser: 'chromium' }],
+						provider: playwright(),
+						enabled: true,
+						headless: true,
+					},
+				},
+			} satisfies TestProjectConfiguration as Record<string, unknown>,
+			(projectOverrides?.browser ?? {}) as Record<string, unknown>,
+		),
+	],
+})
 
 export const createAppConfig = ({
 	root = process.cwd(),
 	projectOverrides,
-}: AppConfigOptions = {}): Record<string, unknown> => ({
+}: {
+	root?: string
+	projectOverrides?: ProjectOverrides
+}): UserConfig => ({
 	root,
 	resolve: {
 		tsconfigPaths: true,
@@ -53,53 +164,10 @@ export const createAppConfig = ({
 			svgrOptions: { exportType: 'default' },
 		}),
 	],
-	fmt: workspaceConfig.fmt,
-	lint: workspaceConfig.lint,
-	staged: workspaceConfig.staged,
-	test: {
-		passWithNoTests: true,
-		projects: [
-			{
-				extends: true,
-				test: {
-					name: 'unit',
-					include: ['src/**/*.test.unit.ts'],
-				},
-			},
-			mergeConfig(
-				{
-					extends: true,
-					plugins: [createMswHandlersPlugin()],
-					test: {
-						name: 'server',
-						include: ['src/**/*.test.ts'],
-						testTimeout: 30_000,
-						fileParallelism: false,
-					},
-				} satisfies TestProjectConfiguration as Record<string, unknown>,
-				(projectOverrides?.server ?? {}) as Record<string, unknown>,
-			),
-			mergeConfig(
-				{
-					extends: true,
-					plugins: [createMswHandlersPlugin(), createStylesPlugin()],
-					test: {
-						name: 'browser',
-						include: ['src/**/*.test.tsx', 'tests/**/*.test.tsx'],
-						setupFiles: [stylesSetup],
-						browser: {
-							instances: [{ browser: 'chromium' }],
-							provider: playwright(),
-							enabled: true,
-							headless: true,
-						},
-					},
-				} satisfies TestProjectConfiguration as Record<string, unknown>,
-				(projectOverrides?.browser ?? {}) as Record<string, unknown>,
-			),
-		],
+	fmt: fmt,
+	lint: lint,
+	staged: {
+		'*.{js,ts,tsx}': 'vp check --fix',
 	},
+	test: test(projectOverrides),
 })
-
-export const viteConfig: typeof createAppConfig = createAppConfig
-export { workspaceConfig } from './workspace.ts'
