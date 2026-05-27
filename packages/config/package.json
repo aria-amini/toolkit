@@ -23,11 +23,6 @@
 	"main": "./dist/vite.mjs",
 	"types": "./dist/vite.d.mts",
 	"exports": {
-		"./setup/styles": "./src/setup/styles.ts",
-		"./test/browser": "./src/test/browser.ts",
-		"./test/db": "./src/test/db.ts",
-		"./test/server": "./src/test/server.ts",
-		"./test/visual-page": "./src/test/visual-page.tsx",
 		"./*": {
 			"types": "./dist/*.d.mts",
 			"default": "./dist/*.mjs"
