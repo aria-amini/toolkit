@@ -1,5 +1,6 @@
 import { setupServer, type SetupServer } from 'msw/node'
-import { resolve } from 'node:path'
+import { existsSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
 import { test as baseTest } from 'vite-plus/test'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import type { Pool } from 'pg'
@@ -8,8 +9,19 @@ const DEFAULT_SCHEMA_PATH = 'src/db/tables.ts'
 const DEFAULT_MIGRATIONS_PATH = 'src/db/migrations'
 const DEFAULT_IMAGE = 'postgres:17'
 const DEFAULT_EXTENSIONS = ['pg_trgm']
+const ROOT_MARKERS = [
+	'vite.config.ts',
+	'vite.config.mts',
+	'vite.config.js',
+	'vite.config.mjs',
+	'vitest.config.ts',
+	'vitest.config.mts',
+	'vitest.config.js',
+	'vitest.config.mjs',
+]
 
 export interface DbConfig {
+	root?: string
 	schemaPath?: string
 	migrationsPath?: string
 	postgresImage?: string
@@ -38,6 +50,20 @@ async function ensureMswServer(): Promise<SetupServer> {
 	return mswServer
 }
 
+function findProjectRoot(start = process.cwd()) {
+	let directory = start
+
+	while (true) {
+		if (ROOT_MARKERS.some((marker) => existsSync(resolve(directory, marker)))) {
+			return directory
+		}
+
+		const parent = dirname(directory)
+		if (parent === directory) return start
+		directory = parent
+	}
+}
+
 export const test = baseTest.extend<DbFixture>({
 	server: [
 		async ({}, use) => {
@@ -62,12 +88,13 @@ export const test = baseTest.extend<DbFixture>({
 			const { drizzle } = await import('drizzle-orm/node-postgres')
 			const { Wait } = await import('testcontainers')
 			const { Pool } = await import('pg')
+			const root = dbConfig.root ?? findProjectRoot()
 			const schemaPath = resolve(
-				process.cwd(),
+				root,
 				dbConfig.schemaPath ?? DEFAULT_SCHEMA_PATH,
 			)
 			const migrationsFolder = resolve(
-				process.cwd(),
+				root,
 				dbConfig.migrationsPath ?? DEFAULT_MIGRATIONS_PATH,
 			)
 			const container = await new PostgreSqlContainer(
