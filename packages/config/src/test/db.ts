@@ -6,7 +6,6 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import type { Pool } from 'pg'
 
 const DEFAULT_SCHEMA_PATH = 'src/db/tables.ts'
-const DEFAULT_MIGRATIONS_PATH = 'src/db/migrations'
 const DEFAULT_IMAGE = 'postgres:17'
 const DEFAULT_EXTENSIONS = ['pg_trgm']
 const ROOT_MARKERS = [
@@ -23,7 +22,6 @@ const ROOT_MARKERS = [
 export interface DbConfig {
 	root?: string
 	schemaPath?: string
-	migrationsPath?: string
 	postgresImage?: string
 }
 
@@ -93,10 +91,6 @@ export const test = baseTest.extend<DbFixture>({
 				root,
 				dbConfig.schemaPath ?? DEFAULT_SCHEMA_PATH,
 			)
-			const migrationsFolder = resolve(
-				root,
-				dbConfig.migrationsPath ?? DEFAULT_MIGRATIONS_PATH,
-			)
 			const container = await new PostgreSqlContainer(
 				dbConfig.postgresImage ?? DEFAULT_IMAGE,
 			)
@@ -108,7 +102,7 @@ export const test = baseTest.extend<DbFixture>({
 			const db = Object.assign(drizzle({ client }), { $client: client })
 
 			try {
-				await seedDatabase(db, { schemaPath, migrationsFolder, seedFunction })
+				await seedDatabase(db, { schemaPath, seedFunction })
 				await use(db)
 			} finally {
 				await db.$client.end()
@@ -131,7 +125,6 @@ export function initDb(
 
 export interface SeedDatabaseOptions {
 	schemaPath: string
-	migrationsFolder: string
 	seedFunction?: (db: Database) => Promise<void> | void
 	extensions?: string[]
 }
@@ -140,19 +133,18 @@ export async function seedDatabase(
 	db: Database,
 	{
 		schemaPath,
-		migrationsFolder,
 		seedFunction,
 		extensions = DEFAULT_EXTENSIONS,
 	}: SeedDatabaseOptions,
 ) {
-	const { migrate } = await import('drizzle-orm/node-postgres/migrator')
+	const { pushSchema } = await import('drizzle-kit/api')
 	const { reset } = await import('drizzle-seed')
 	const schema = await import(/* @vite-ignore */ schemaPath)
 
 	for (const ext of extensions) {
 		await db.execute(`CREATE EXTENSION IF NOT EXISTS "${ext}"`)
 	}
-	await migrate(db, { migrationsFolder })
+	await (await pushSchema(schema, db)).apply()
 	await reset(db, schema)
 	if (seedFunction) await seedFunction(db)
 }
