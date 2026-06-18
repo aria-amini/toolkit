@@ -28,5 +28,5 @@ test('handles API', async ({ server }) => { ... })
 ```
 
 Handler files are auto-discovered from the consuming app's working directory:
-`__mocks__/handlers.ts` → `__mocks__/handlers.js` → `src/mocks/handlers.ts` →
-`src/mocks/handlers.js`
+`tests/__mocks__/http.ts` → `tests/__mocks__/http.js` → `__mocks__/handlers.ts`
+→ `__mocks__/handlers.js` → `src/mocks/handlers.ts` → `src/mocks/handlers.js`

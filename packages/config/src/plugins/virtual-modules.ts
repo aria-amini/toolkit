@@ -3,6 +3,8 @@ import { resolve } from 'node:path'
 import type { Plugin } from 'vite'
 
 const HANDLER_LOCATIONS = [
+	'tests/__mocks__/http.ts',
+	'tests/__mocks__/http.js',
 	'__mocks__/handlers.ts',
 	'__mocks__/handlers.js',
 	'src/mocks/handlers.ts',
