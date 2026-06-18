@@ -18,6 +18,7 @@ import {
 } from './plugins/virtual-modules.ts'
 
 const stylesSetup = '@aamini/config/setup/styles'
+const routeFileIgnorePattern = '(__tests__|\\.test\\.tsx$)'
 
 export const fmt = {
 	singleQuote: true,
@@ -152,7 +153,7 @@ export const createAppConfig = ({
 		],
 	},
 	plugins: [
-		tanstackStart(),
+		tanstackStart({ router: { routeFileIgnorePattern } }),
 		...(process.env.VITEST === 'true'
 			? []
 			: [devtools({ injectSource: { enabled: false } }), nitro()]),
