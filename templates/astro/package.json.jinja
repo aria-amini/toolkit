@@ -4,21 +4,16 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-{%- if astro_output == 'node' %}
-		"start": "NODE_ENV=production HOST=${HOST:-0.0.0.0} node dist/server/entry.mjs",
-{%- endif %}
 		"dev": "astro dev --ignore-lock",
 		"build": "astro build",
-		"preview": "astro preview --ignore-lock",
+		"preview": "wrangler dev",
+		"deploy": "astro build && wrangler deploy",
 		"check": "vp check && prettier --check \"**/*.astro\" && eslint && astro check",
 		"fmt": "vp fmt && prettier --write \"**/*.astro\"",
 		"test": "vp test run --passWithNoTests",
 		"e2e": "playwright test"
 	},
 	"dependencies": {
-{%- if astro_output == 'node' %}
-		"@astrojs/node": "^11.1.7",
-{%- endif %}
 {%- if react %}
 		"@astrojs/react": "^7.0.1",
 		"react": "^19.2.7",
@@ -52,7 +47,8 @@
 		"prettier-plugin-astro": "1.1.1",
 		"prettier-plugin-tailwindcss": "0.8.1",
 		"typescript": "^6.0.3",
-		"vite-plus": "1.1.0"
+		"vite-plus": "1.1.0",
+		"wrangler": "^4.151.0"
 	},
 	"packageManager": "pnpm@12.8.1+sha512.f64ba907507f5ceafe06c8d38e6052d0179444580ec1279ddd5bfc11cb48aa8a2644b66598e07e761da84872a9fc57d5f902b87fa49d024198d558612aabbe45"
 }

@@ -42,6 +42,8 @@ copier copy --trust -d template=astro -d app_name=my-site \
   -d site_url=https://example.com https://github.com/aria-amini/toolkit my-site
 ```
 
-Select `astro_output=node` for server routes. Select `react=true` for React
-islands. The Astro template derives its format, markup lint, and layout setup
-from `~/apps/pc-tune-ups`. It uses `vp run check` and `vp run build`.
+The Astro template builds static output for Cloudflare Workers. Select
+`react=true` for React islands. A site that needs routes that run on request
+adds the Cloudflare adapter itself. The template derives its format, markup
+lint, and layout setup from `~/apps/pc-tune-ups`. It uses `vp run check` and
+`vp run build`.

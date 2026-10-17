@@ -6,3 +6,4 @@ dist/
 pitchfork.local.toml
 .playwright/
 .vite/
+.wrangler/

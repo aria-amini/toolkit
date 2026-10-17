@@ -18,19 +18,29 @@ Import the Bootstrap action from `t3.json` in T3 project Actions settings. Its
 vp run check
 vp test run
 vp run build
-vp run e2e
+BASE_URL=<site url> vp run e2e
 ```
+
+Playwright starts no server. `BASE_URL` is required: use the dev URL from
+`mise run bootstrap`, or a Cloudflare Preview URL.
 
 Vite+ checks TypeScript. Prettier formats Astro files. ESLint checks Astro
 markup. `astro check` validates templates and component props.
 
 ## Production
 
-{% if astro_output == 'node' -%}
-Run `vp run build`, then `HOST=0.0.0.0 PORT=4321 vp run start`. The Node adapter
-serves `dist/client` and runs `dist/server/entry.mjs`.
-{%- else -%}
-Run `vp run build` and publish `dist/` to a static host.
-{%- endif %}
+Cloudflare Workers serves `dist/` as static assets. Connect the repository in
+Workers & Pages, then set the Workers Builds commands:
 
-Change the production URL in `astro.config.ts`.
+- Build command: `pnpm run build`
+- Deploy command: `pnpm exec wrangler deploy`
+- Non-production branch deploy command: `pnpm exec wrangler preview`
+
+Under Workers Builds branch control, set `main` as the production branch and
+enable Preview Builds. Workers Builds deploys `main` and gives each pull request
+a Preview URL. The E2E workflow runs Playwright against the Preview, and against
+the live domain after a merge. `vp run deploy` deploys from your machine with
+`wrangler login`.
+
+Change the production URL in `astro.config.ts` and the routes in
+`wrangler.jsonc`.
