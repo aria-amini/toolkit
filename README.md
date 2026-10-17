@@ -8,7 +8,7 @@ Shared app tooling for aria-amini projects: the Copier app templates and the
 | Template   | Contents                                                                                    |
 | ---------- | ------------------------------------------------------------------------------------------- |
 | `tanstack` | TanStack Start, Better Auth with optional Google OAuth, Sentry, PostHog, Drizzle, Pitchfork |
-| `astro`    | Astro, Tailwind CSS, static or Node hosting, optional React islands, Varlock, Pitchfork     |
+| `astro`    | Astro on Cloudflare Workers, React islands, shadcn, Tailwind CSS, Varlock, Pitchfork        |
 
 Scaffold an app:
 
@@ -42,8 +42,8 @@ copier copy --trust -d template=astro -d app_name=my-site \
   -d site_url=https://example.com https://github.com/aria-amini/toolkit my-site
 ```
 
-The Astro template builds static output for Cloudflare Workers. Select
-`react=true` for React islands. A site that needs routes that run on request
-adds the Cloudflare adapter itself. The template derives its format, markup
-lint, and layout setup from `~/apps/pc-tune-ups`. It uses `vp run check` and
-`vp run build`.
+The Astro template builds static output for Cloudflare Workers and includes
+React islands and shadcn components (`base-vega`, Base UI). A site that needs
+routes that run on request adds the Cloudflare adapter itself. The template
+derives its format, markup lint, and layout setup from `~/apps/pc-tune-ups`. It
+uses `vp run check` and `vp run build`.

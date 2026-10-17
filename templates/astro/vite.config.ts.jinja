@@ -6,7 +6,7 @@ export default defineConfig(
 	mergeToolkitConfig(
 		{
 			fmt,
-			lint: lint('{{ 'react' if react else 'astro' }}'),
+			lint: lint('react'),
 			test: { include: ['src/**/*.unit.test.ts'], passWithNoTests: true },
 		},
 		{
