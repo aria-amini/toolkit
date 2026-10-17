@@ -1,0 +1,94 @@
+name: E2E
+
+# Cloudflare Workers Builds deploys each PR as a Preview and each push to main
+# as production. This workflow waits for that build, then runs Playwright
+# against the deployed site. Playwright starts no local server.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: read
+  pull-requests: read
+
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+      - name: setup vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          version: '1.1.0'
+          node-version-file: .node-version
+          cache: true
+      - name: Install Playwright Browsers
+        run: vp exec playwright install chromium --with-deps --no-shell
+      - name: Wait for Workers Builds
+        run: |
+          # Workers Builds posts its check run a few seconds after the push.
+          for attempt in $(seq 1 90); do
+            state=$(gh api "repos/$REPO/commits/$SHA/check-runs" \
+              --jq '.check_runs[] | select(.name | startswith("Workers Builds")) | "\(.status) \(.conclusion)"' | head -n1)
+            echo "attempt $attempt: ${state:-no check run yet}"
+            case "$state" in
+              "completed success") exit 0 ;;
+              completed*) echo "Workers Builds did not succeed." >&2; exit 1 ;;
+            esac
+            sleep 10
+          done
+          echo "Workers Builds never finished." >&2
+          exit 1
+      - name: Resolve site URL
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            url=$(grep -oE "site: '[^']+'" astro.config.ts | sed -E "s/site: '([^']+)'/\1/")
+          else
+            # The build for this commit succeeded, so the Preview alias in
+            # Cloudflare's PR comment serves it. The comment's per-commit table
+            # can lag behind the check run.
+            for attempt in $(seq 1 30); do
+              url=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" --paginate \
+                --jq '.[] | select(.user.login == "cloudflare-workers-and-pages[bot]") | .body' \
+                | grep -oE "Preview URL: https://[^ ]+" \
+                | head -n1 | sed 's/Preview URL: //')
+              [ -n "$url" ] && break
+              echo "attempt $attempt: no Preview URL yet"
+              sleep 10
+            done
+          fi
+          [ -n "$url" ] || { echo "No site URL found." >&2; exit 1; }
+          echo "BASE_URL=${url%/}" >> "$GITHUB_ENV"
+          echo "Testing ${url%/}"
+      - name: Wait for the site
+        run: |
+          for attempt in $(seq 1 30); do
+            status=$(curl -sL -o /dev/null -w '%{http_code}' --max-time 20 "$BASE_URL" || true)
+            [ "$status" = "200" ] && exit 0
+            echo "attempt $attempt: $BASE_URL returned HTTP $status"
+            sleep 10
+          done
+          exit 1
+      - name: Run Playwright tests
+        run: vp exec playwright test
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: .playwright/
+          include-hidden-files: true
+          retention-days: 14

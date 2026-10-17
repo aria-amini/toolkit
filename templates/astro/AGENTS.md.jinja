@@ -11,6 +11,10 @@ Run `vp install` before work. Run `vp run check`, `vp test run`, and
 or island changes. Playwright starts no server; use the URL from
 `mise run bootstrap`.
 
+Write unit tests as `src/**/*.unit.test.ts`. Write e2e tests in `e2e/`. Record
+visual baselines with `BASE_URL=<dev url> VISUAL=1 pnpm e2e:update`, then remove
+the skip in `e2e/visual.spec.ts`.
+
 Run `mise run bootstrap` for each checkout to register and start Pitchfork. Take
 colors from theme tokens in `src/styles/global.css`. Build dynamic classes with
 `cn()` from `cn`; never use template literals. Add UI components with

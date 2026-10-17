@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+      - name: setup vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          version: '1.1.0'
+          node-version-file: .node-version
+          cache: true
+      - run: vp run check
+      - run: vp test run

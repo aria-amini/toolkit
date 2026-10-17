@@ -1,21 +1,17 @@
-import { defineConfig, devices } from '@playwright/test'
+import { playwrightConfig } from '@aamini/config/playwright'
 
-const baseURL = process.env.BASE_URL || 'http://127.0.0.1:4322'
+const baseURL = process.env.BASE_URL?.trim()
 
-export default defineConfig({
-	testDir: './e2e',
-	outputDir: '.playwright/test-results',
-	use: {
-		baseURL,
-		...devices['Desktop Chrome'],
-		channel: 'chromium',
-		launchOptions: { args: ['--headless=new'] },
-	},
-	webServer: process.env.BASE_URL
-		? []
-		: {
-				command: '{{ "vp run build && HOST=127.0.0.1 PORT=4322 vp run start" if astro_output == "node" else "vp run build && vp run preview --host 127.0.0.1 --port 4322" }}',
-				url: baseURL,
-				timeout: 120_000,
-			},
-})
+if (!baseURL) {
+	throw new Error(
+		'Set BASE_URL to the site under test, for example a Cloudflare preview URL.',
+	)
+}
+
+export default {
+	...playwrightConfig({ testDir: './e2e', baseURL }),
+	// One baseline set for every base URL, so the Preview, the live site, and a
+	// local build compare against the same images.
+	snapshotPathTemplate:
+		'{testDir}/__screenshots__/{testFilePath}/{arg}-{projectName}{ext}',
+}
