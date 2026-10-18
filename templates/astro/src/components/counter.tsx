@@ -1,15 +1,14 @@
 import { useState } from 'react'
 
+import { Button } from '@/components/ui/button'
+import { countLabel } from '@/lib/count-label'
+
 export function Counter() {
 	const [count, setCount] = useState(0)
 
 	return (
-		<button
-			type="button"
-			className="bg-primary text-primary-foreground mt-6 rounded-lg px-4 py-3"
-			onClick={() => setCount((value) => value + 1)}
-		>
-			Count: {count}
-		</button>
+		<Button className="mt-6" onClick={() => setCount((value) => value + 1)}>
+			{countLabel(count)}
+		</Button>
 	)
 }

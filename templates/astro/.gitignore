@@ -6,3 +6,6 @@ dist/
 pitchfork.local.toml
 .playwright/
 .vite/
+.wrangler/
+.dev.vars*
+.DS_Store

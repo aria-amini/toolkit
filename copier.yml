@@ -20,8 +20,11 @@ template:
 _templates_suffix: '.jinja'
 
 # Value files hold per-instance secrets/local config; never overwrite on update.
-# .env.schema remains template-managed as the contract.
-_skip_if_exists: []
+# .env.schema remains template-managed as the contract. Astro apps own their
+# `src/` tree and smoke test after the first render.
+_skip_if_exists:
+  - '{% if template == "astro" %}src/**{% endif %}'
+  - '{% if template == "astro" %}e2e/*.spec.ts{% endif %}'
 
 _exclude:
   # Replaces copier's defaults, so they are repeated here. Paths are relative
@@ -36,8 +39,6 @@ _exclude:
   - '.svn'
   - 'copier.questions.yml'
   - 'node_modules/**'
-  - '{% if template == "astro" and not react %}src/components/counter.tsx{%
-    endif %}'
   - .env.local
   - .env.development.local
   - '{% if not sentry %}instrument.server.mjs{% endif %}'

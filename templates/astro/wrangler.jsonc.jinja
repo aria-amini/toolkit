@@ -1,0 +1,29 @@
+{%- set host = site_url | replace('https://', '') | replace('http://', '') | trim('/') -%}
+{%- set apex = host[4:] if host.startswith('www.') else host -%}
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "{{ app_name }}",
+	"compatibility_date": "2026-10-01",
+	"observability": { "enabled": true },
+	// Custom domains turn workers.dev off unless it is set here.
+	"workers_dev": true,
+	// Workers Builds runs `wrangler preview` for pull request branches, which
+	// needs this block. preview_urls gives each Preview a workers.dev URL.
+	"previews": {},
+	"preview_urls": true,
+	"assets": {
+		"directory": "./dist",
+		"not_found_handling": "404-page",
+	},
+{%- if host.startswith('www.') %}
+	// www is canonical. A Redirect Rule on the zone sends the apex to www before
+	// requests reach the Worker. The apex route keeps the site up if the rule is
+	// removed.
+	"routes": [
+		{ "pattern": "{{ apex }}", "custom_domain": true },
+		{ "pattern": "{{ host }}", "custom_domain": true },
+	],
+{%- else %}
+	"routes": [{ "pattern": "{{ host }}", "custom_domain": true }],
+{%- endif %}
+}
