@@ -6,10 +6,10 @@ Astro + React islands + Tailwind CSS, scaffolded from
 Astro owns the dev server and build. Use `vp run dev` and `vp run build`. Vite+
 owns formatting, lint, and Vitest. Prettier and ESLint also check Astro markup.
 
-Run `vp install` before work. Run `vp run check`, `vp test run`, and
-`vp run build` before each commit. Run `BASE_URL=<dev url> vp run e2e` for route
-or island changes. Playwright starts no server; use the URL from
-`mise run bootstrap`.
+Run `vp install` before work. Run `vp run check` and `vp test run` before each
+commit, and `vp run build` when you change the build config. Run
+`BASE_URL=<dev url> vp run e2e` for route or island changes. Playwright starts
+no server; use the URL from `mise run bootstrap`.
 
 Write unit tests as `src/**/*.unit.test.ts`. Write e2e tests in `e2e/`. Record
 visual baselines with `BASE_URL=<dev url> VISUAL=1 pnpm e2e:update`, then remove
