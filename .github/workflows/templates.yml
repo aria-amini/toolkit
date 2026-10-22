@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   group: templates-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -53,9 +56,12 @@ jobs:
           vp install
           vp run build
           pnpm --dir packages/config pack --out "$RUNNER_TEMP/aamini-config.tgz"
+      # A full install, so the app's prepare script runs; vp add skips it.
       - name: Install dependencies
         working-directory: ${{ runner.temp }}/app
-        run: vp add -D "@aamini/config@file:$RUNNER_TEMP/aamini-config.tgz"
+        run: |
+          npm pkg set "devDependencies.@aamini/config=file:$RUNNER_TEMP/aamini-config.tgz"
+          vp install --no-frozen-lockfile
       - name: Install Chromium
         working-directory: ${{ runner.temp }}/app
         run: vp exec playwright install chromium --with-deps --no-shell
