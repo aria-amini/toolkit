@@ -7,7 +7,7 @@ import type { varlockVitePlugin } from '@varlock/vite-integration'
 import type { reactCompilerPreset } from '@vitejs/plugin-react'
 import type viteReact from '@vitejs/plugin-react'
 import type { nitro } from 'nitro/vite'
-import type { PluginOption, UserConfig } from 'vite-plus'
+import { lazyPlugins, type PluginOption, type UserConfig } from 'vite-plus'
 
 import { mergeOptions } from '../options.ts'
 import { canResolve, importPeer, requirePeer, type Peer } from '../peers.ts'
@@ -241,15 +241,22 @@ async function tanstackPlugins(plugins: TanstackPlugins) {
 
 	const varlockOptions = pluginOptions(pluginDefaults.varlock, plugins.varlock)
 
-	if (varlockOptions) {
-		const { varlockVitePlugin } = await importPeer(
-			entry,
-			peers.varlock,
-			() => import('@varlock/vite-integration'),
-		)
+	// Varlock resolves the env on import, so load it only when Vite runs, not
+	// when Vite+ just reads lint, fmt, or run settings. tanstackStart stays
+	// eager: it generates the route tree that type-checking reads.
+	const varlock =
+		varlockOptions &&
+		lazyPlugins(async () => {
+			const { varlockVitePlugin } = await importPeer(
+				entry,
+				peers.varlock,
+				() => import('@varlock/vite-integration'),
+			)
 
-		result.push(varlockVitePlugin(varlockOptions))
-	}
+			return [varlockVitePlugin(varlockOptions)]
+		})
+
+	if (varlock) result.push(varlock)
 
 	return result
 }
