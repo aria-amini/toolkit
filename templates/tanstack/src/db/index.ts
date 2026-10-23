@@ -1,1 +1,1 @@
-export { db, pool } from './connection'
+export { getDb } from './connection'

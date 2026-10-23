@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   group: templates-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -21,8 +24,6 @@ jobs:
         include:
           - template: astro
             features: false
-    env:
-      APP_ENV: test
     steps:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
@@ -53,9 +54,12 @@ jobs:
           vp install
           vp run build
           pnpm --dir packages/config pack --out "$RUNNER_TEMP/aamini-config.tgz"
+      # A full install, so the app's prepare script runs; vp add skips it.
       - name: Install dependencies
         working-directory: ${{ runner.temp }}/app
-        run: vp add -D "@aamini/config@file:$RUNNER_TEMP/aamini-config.tgz"
+        run: |
+          npm pkg set "devDependencies.@aamini/config=file:$RUNNER_TEMP/aamini-config.tgz"
+          vp install --no-frozen-lockfile
       - name: Install Chromium
         working-directory: ${{ runner.temp }}/app
         run: vp exec playwright install chromium --with-deps --no-shell
@@ -64,4 +68,5 @@ jobs:
         run: |
           vp run check
           vp test run
-          vp run build
+          # Templates never deploy, so build with what bootstrap writes locally.
+          APP_ENV=development APP_PORT=3000 BASE_URL=http://localhost:3000 vp run build

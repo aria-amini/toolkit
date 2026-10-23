@@ -56,6 +56,21 @@ describe('defineToolkit', () => {
 		expect((await pluginNames(config.plugins)).at(-1)).toBe('app-plugin')
 	})
 
+	test('skips varlock when Vite+ reads only config metadata', async () => {
+		process.env.VP_RESOLVING_CONFIG_METADATA = '1'
+
+		try {
+			const names = await pluginNames((await defineToolkit()).plugins)
+
+			expect(
+				names.some((name) => name.startsWith('tanstack-react-start')),
+			).toBe(true)
+			expect(names.some((name) => name.includes('varlock'))).toBe(false)
+		} finally {
+			delete process.env.VP_RESOLVING_CONFIG_METADATA
+		}
+	})
+
 	test('sets the root aliases and keeps app aliases first', async () => {
 		const config = await defineToolkit({
 			root: '/app',

@@ -5,7 +5,7 @@ import { oAuthProxy } from 'better-auth/plugins'
 {% endif -%}
 import { tanstackStartCookies } from 'better-auth/tanstack-start'
 
-import { db } from '@/db'
+import { getDb } from '@/db'
 import { account, session, user, verification } from '@/db/schema'
 import { serverEnv as env } from '@/env.server'
 
@@ -30,7 +30,7 @@ export function getAuth() {
 			fallback: appOrigin,
 		},
 		secret: env.BETTER_AUTH_SECRET,
-		database: drizzleAdapter(db, {
+		database: drizzleAdapter(getDb(), {
 			provider: 'pg',
 			schema: { account, session, user, verification },
 		}),
@@ -58,6 +58,13 @@ export function getAuth() {
 {%- if google_auth %}
 
 	if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+		// Preview and production must share this secret, or Google sign-in fails.
+		if (!env.OAUTH_PROXY_SECRET && env.APP_ENV !== 'development') {
+			throw new Error(
+				'OAUTH_PROXY_SECRET is not set. Google sign-in needs the same value in preview and production.',
+			)
+		}
+
 		return betterAuth({
 			...options,
 			socialProviders: {
