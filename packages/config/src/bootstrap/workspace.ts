@@ -450,13 +450,12 @@ export function setupWorkspace() {
 function seedDevLocalFile(): boolean {
 	const path = '.env.development.local'
 
-	if (
-		[path, '.env.local'].some((file) => readEnvFile(file)['BETTER_AUTH_SECRET'])
-	) {
+	if (readEnvFile(path)['BETTER_AUTH_SECRET']) {
 		return false
 	}
 
-	// Drops an empty BETTER_AUTH_SECRET= line so the new value isn't a duplicate.
+	// Drops an empty BETTER_AUTH_SECRET line: a quoted "" would hide the
+	// .env.local value, and an unquoted one would duplicate the new value.
 	const existing = existsSync(path)
 		? readFileSync(path, 'utf8')
 				.split(/\r?\n/)
@@ -464,6 +463,14 @@ function seedDevLocalFile(): boolean {
 				.join('\n')
 				.trimEnd()
 		: ''
+
+	if (readEnvFile('.env.local')['BETTER_AUTH_SECRET']) {
+		if (existsSync(path)) {
+			writeFileSync(path, existing ? `${existing}\n` : '')
+		}
+
+		return false
+	}
 
 	writeFileSync(
 		path,

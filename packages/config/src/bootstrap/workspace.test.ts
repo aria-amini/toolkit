@@ -226,6 +226,19 @@ describe('setupWorkspace', () => {
 		expect(existsSync('.env.development.local')).toBe(false)
 	})
 
+	test('drops an empty secret line that would hide the .env.local value', () => {
+		writeFileSync('.env.local', 'BETTER_AUTH_SECRET="mine"\n')
+		writeFileSync(
+			'.env.development.local',
+			'OTHER="1"\nBETTER_AUTH_SECRET=""\n',
+		)
+
+		const { summary } = setupWorkspace()
+
+		expect(readFileSync('.env.development.local', 'utf8')).toBe('OTHER="1"\n')
+		expect(summary).not.toContain('Seeded a local BETTER_AUTH_SECRET.')
+	})
+
 	test('replaces an empty secret line and keeps other values', () => {
 		writeFileSync('.env.development.local', 'OTHER="1"\nBETTER_AUTH_SECRET=\n')
 
