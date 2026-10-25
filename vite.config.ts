@@ -28,6 +28,13 @@ export default defineConfig(
 					},
 				],
 				ignorePatterns: ['templates/**', 'packages/config/src/anti-slop/**'],
+				// The bootstrap CLI reports to the terminal.
+				overrides: [
+					{
+						files: ['packages/config/src/bootstrap/**'],
+						rules: { 'no-console': 'off' },
+					},
+				],
 			},
 			test: { projects: ['packages/*'] },
 		},

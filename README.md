@@ -33,7 +33,9 @@ mise run bootstrap
 
 Bootstrap installs dependencies, configures the workspace, removes orphaned
 Docker resources, migrates the database, and starts the app. Add `--verbose` for
-direct command output. Task code lives under `mise-tasks/`.
+direct command output. The task installs tools and packages, then runs
+`aamini bootstrap` from `@aamini/config`, so the code updates with the package,
+not with `copier update`.
 
 Scaffold an Astro site:
 
