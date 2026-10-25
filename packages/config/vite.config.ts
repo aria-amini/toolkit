@@ -12,6 +12,7 @@ export default defineConfig({
 			'vitest/server': 'src/vitest/server.ts',
 			'vitest/db': 'src/vitest/db.ts',
 			playwright: 'src/playwright.ts',
+			'bootstrap/cli': 'src/bootstrap/cli.ts',
 		},
 		dts: true,
 		format: ['esm'],
