@@ -24,6 +24,16 @@ pnpm add -D @aamini/config vite-plus oxlint-plugin-eslint
 | `/tsconfig/react.json` | Base plus React JSX, DOM, and Vite client types        |
 | `/tsconfig/astro.json` | Base plus Astro client types                           |
 
+## CLI
+
+`aamini bootstrap [--verbose]` configures a TanStack checkout: workspace ports
+and `.env.workspace.local`, orphaned Docker cleanup, env validation, Docker
+services, migrations, and the Pitchfork dev daemon. It then waits for the app to
+answer. It needs `gum`, and the checkout needs the `compose:up` and `db:migrate`
+scripts. Install tools and packages first, since the bin ships in this package.
+The TanStack template's `mise run bootstrap` does that, then runs
+`vp exec aamini bootstrap`.
+
 ## TanStack Start
 
 ```ts
