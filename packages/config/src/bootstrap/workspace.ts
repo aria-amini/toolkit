@@ -26,7 +26,7 @@ function sipRound(state: SipState): void {
 }
 
 // Worktrunk uses Rust's DefaultHasher (SipHash 1-3 with zero keys).
-function worktrunkHash(value: string): bigint {
+export function worktrunkHash(value: string): bigint {
 	const bytes = Buffer.concat([Buffer.from(value), Buffer.from([0xff])])
 
 	const state: SipState = [
@@ -62,7 +62,7 @@ function worktrunkHash(value: string): bigint {
 	return state[0] ^ state[1] ^ state[2] ^ state[3]
 }
 
-function hashPort(value: string): number {
+export function hashPort(value: string): number {
 	return 10_000 + Number(worktrunkHash(value) % 10_000n)
 }
 
@@ -75,7 +75,7 @@ function shortHash(value: string): string {
 		.join('')
 }
 
-function sanitizeDatabaseName(value: string): string {
+export function sanitizeDatabaseName(value: string): string {
 	let result = value
 		.replace(/[A-Z]/g, (character) => character.toLowerCase())
 		.replace(/[^a-z0-9]+/g, '_')
@@ -153,7 +153,7 @@ const AWS_SECRET_ACCESS_KEY = 'app_minio_secret'
 
 const ENV_SPEC_HEADER = ['# ---', '# @defaultSensitive=false', '# ---', '']
 
-function updateEnvFile(
+export function updateEnvFile(
 	path: string,
 	groups: Record<string, string>[],
 	replace = false,
@@ -222,7 +222,7 @@ function setDaemonPort(appPort: number): void {
 	)
 }
 
-function readEnvFile(path: string): Record<string, string> {
+export function readEnvFile(path: string): Record<string, string> {
 	if (!existsSync(path)) return {}
 
 	return Object.fromEntries(
@@ -277,7 +277,7 @@ function proxyTld(): string {
 	}
 }
 
-function slugify(value: string): string {
+export function slugify(value: string): string {
 	const slug = value
 		.toLowerCase()
 		.replaceAll(/[^a-z0-9-]+/g, '-')
