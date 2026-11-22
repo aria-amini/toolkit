@@ -1,0 +1,24 @@
+[build]
+builder = "RAILPACK"
+# Resolve the env from OpenBao once, at build time. The frozen env is baked
+# into the image for one tier, so keep Skipped Builds off for this service: it
+# would reuse a preview image in production. Each environment's
+# _VARLOCK_ENV_KEY differs, so a reused image fails to start instead of
+# serving preview secrets.
+buildCommand = "vp run build && pnpm exec varlock freeze"
+
+[deploy]
+# `vp run` would load the Vite config and resolve the env live again, so these
+# use the frozen env: restarts, crashes and rollbacks never contact OpenBao.
+preDeployCommand = "pnpm exec varlock run --frozen -- tsx mise-tasks/migrate.ts"
+runtime = "V2"
+numReplicas = 1
+{%- if sentry %}
+startCommand = "pnpm exec varlock run --frozen -- node --import ./.output/server/instrument.server.mjs .output/server/index.mjs"
+{%- else %}
+startCommand = "pnpm exec varlock run --frozen -- node .output/server/index.mjs"
+{%- endif %}
+healthcheckPath = "/"
+useLegacyStacker = false
+restartPolicyType = "ALWAYS"
+healthcheckTimeout = 300

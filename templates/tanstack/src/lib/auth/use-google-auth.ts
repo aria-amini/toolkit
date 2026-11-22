@@ -47,7 +47,7 @@ export function useGoogleAuth({ fallbackRedirect }: UseGoogleAuthOptions) {
 			) {
 				setIsAvailable(false)
 				toast.error(
-					'Google login is not configured yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env.development.',
+					'Google login is not configured yet. Run `mise run dev-token` in aria-amini/infra, then restart the dev server.',
 				)
 			} else {
 				toast.error('Google sign-in failed. Try again.')

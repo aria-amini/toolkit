@@ -14,7 +14,10 @@ Product analytics run through PostHog behind a `/api/ingest` proxy.
 ## Environment
 
 Varlock resolves the env from `.env.schema`, whose comments say what each value
-is for. Railway's PR previews run the real build, so CI doesn't build.
+is for and how secrets come from OpenBao. Deploys freeze the resolved env at
+build time; `railway.toml` says how, and why Railway's Skipped Builds stays off.
+Railway's PR previews run the real build, so CI doesn't build. Tests and CI
+never load the development env.
 
 ## Local development
 
