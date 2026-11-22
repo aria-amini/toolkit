@@ -21,7 +21,7 @@ startCommand = "pnpm exec varlock run --frozen -- node --import ./.output/server
 {%- else %}
 startCommand = "pnpm exec varlock run --frozen -- node .output/server/index.mjs"
 {%- endif %}
-healthcheckPath = "/"
+healthcheckPath = "/api/health"
 useLegacyStacker = false
 restartPolicyType = "ALWAYS"
 healthcheckTimeout = 300
