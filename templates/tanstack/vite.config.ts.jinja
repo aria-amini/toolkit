@@ -1,18 +1,31 @@
 import { defineToolkit } from '@aamini/config/tanstack'
 {% if sentry -%}
 import { sentryTanstackStart } from '@sentry/tanstackstart-react/vite'
+import { lazyPlugins } from 'vite-plus'
 {% endif %}
 export default defineToolkit({
 	root: import.meta.dirname,
 	config: {
 {%- if sentry %}
 		plugins: [
-			sentryTanstackStart({
-				org: '{{ sentry_org }}',
-				project: '{{ sentry_project }}',
-				authToken: process.env.SENTRY_AUTH_TOKEN ?? '',
-				telemetry: Boolean(process.env.SENTRY_AUTH_TOKEN),
-				silent: !process.env.CI,
+			// Loading the Varlock plugin resolves the env into process.env, so the
+			// SENTRY_AUTH_TOKEN read below sees deployed secrets. Lazy, like the
+			// toolkit's own Varlock plugin, so vp check never resolves the env.
+			lazyPlugins(async () => {
+				await import('@varlock/vite-integration')
+
+				return sentryTanstackStart({
+					org: '{{ sentry_org }}',
+					project: '{{ sentry_project }}',
+					authToken: process.env.SENTRY_AUTH_TOKEN ?? '',
+					telemetry: Boolean(process.env.SENTRY_AUTH_TOKEN),
+					silent: !process.env.CI,
+					sourcemaps: {
+						// The default `./**/*.map` skips dot directories, so it never
+						// matches the public maps under .output.
+						filesToDeleteAfterUpload: ['.output/public/**/*.map'],
+					},
+				})
 			}),
 		],
 {%- endif %}
