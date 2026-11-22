@@ -1,6 +1,6 @@
 #:schema https://pitchfork.jdx.dev/schema.json
 
-# The daemon namespace derives from the directory name, so each jj workspace
+# The daemon namespace derives from the directory name, so each worktree
 # gets isolated daemons with its own ports from mise run bootstrap.
 
 [daemons.dev]

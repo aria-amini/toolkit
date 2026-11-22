@@ -1,5 +1,7 @@
 import { spawnSync } from 'node:child_process'
-import { basename } from 'node:path'
+import { existsSync } from 'node:fs'
+import { homedir } from 'node:os'
+import { basename, resolve } from 'node:path'
 
 type Command = [string, ...string[]]
 
@@ -58,6 +60,13 @@ function bootstrap(): void {
 		appName,
 		'workspace bootstrap',
 	])
+
+	// Development reads its secrets from OpenBao with a per-machine token.
+	if (!existsSync(resolve(homedir(), '.config/openbao/.env.dev'))) {
+		throw new Error(
+			'no OpenBao dev token on this machine; run `mise run dev-token` in aria-amini/infra',
+		)
+	}
 
 	for (const [title, command] of [
 		['Install tools (mise i)', ['mise', 'install']],

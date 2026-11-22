@@ -11,6 +11,7 @@ import { createRouter } from '@tanstack/react-router'
 import type { TsrSerializable } from '@tanstack/router-core'
 
 import { NotFoundComponent, ServerErrorComponent } from '@/components/errors'
+import { loadNewCodeAfterDeploys } from '@/lib/utils/new-code'
 import { getQueryClient } from '@/lib/utils/query'
 
 import { routeTree } from './routeTree.gen'
@@ -68,14 +69,15 @@ export const getRouter = () => {
 			hydrate(queryClient, dehydrated)
 		},
 	})
-{%- if sentry %}
 
 	if (!router.isServer) {
+		loadNewCodeAfterDeploys(router)
+{%- if sentry %}
 		Sentry.addIntegration(
 			Sentry.tanstackRouterBrowserTracingIntegration(router),
 		)
-	}
 {%- endif %}
+	}
 
 	return router
 }

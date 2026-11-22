@@ -2,16 +2,9 @@
 
 Full-stack TanStack Start app: React 19, Vite+, Drizzle, Postgres, Better Auth,
 Tailwind v4, shadcn, Varlock. Docker Compose runs Postgres.
-{%- if google_auth %}
-
-Google sign-in uses one shared dev OAuth client (type "Desktop app", so any
-loopback port works) configured through `GOOGLE_CLIENT_ID` /
-`GOOGLE_CLIENT_SECRET`. Deployed environments get dedicated credentials injected
-at runtime.
-{%- endif %}
 {%- if sentry %}
 
-Error monitoring is wired through Sentry (`@sentry/tanstackstart-react`).
+Errors go to Sentry (`@sentry/tanstackstart-react`).
 {%- endif %}
 {%- if posthog %}
 
@@ -20,96 +13,42 @@ Product analytics run through PostHog behind a `/api/ingest` proxy.
 
 ## Environment
 
-Varlock resolves the env from `.env.schema` and detects `APP_ENV`. Secrets are
-checked where the code uses them; deploys also require `BETTER_AUTH_SECRET` and
-`DATABASE_URL`. Railway's PR previews run the real build, so CI doesn't build.
-`vp i` regenerates `env.d.ts`.
+Varlock resolves the env from `.env.schema`, whose comments say what each value
+is for and how secrets come from OpenBao. Deploys freeze the resolved env at
+build time; `railway.toml` says how, and why Railway's Skipped Builds stays off.
+Railway's PR previews run the real build, so CI doesn't build. Tests and CI
+never load the development env.
 
 ## Local development
 
-Run `mise run bootstrap` for each checkout or workspace. It installs
-dependencies, registers the Pitchfork proxy URL, starts the dev daemon, and
-verifies the page. It also configures workspace ports, starts Docker services,
-and applies database migrations. Repeat the command after a checkout moves to
-repair its proxy mapping.
+Rerun `mise run bootstrap` after a checkout moves, to repair its proxy URL.
+Never run `pitchfork proxy setup`: it would take port 443 from the Caddy TLS
+edge. `pitchfork logs dev` shows the dev server's output.
 
-The dev server is a Pitchfork daemon (`pitchfork.toml`). Interactive shells
-auto-start it on `cd`. Pitchfork passes its assigned `PORT` to Vite as
-`APP_PORT` and probes that same port. Start the daemon through bootstrap first;
-daemon auto-start alone does not register the proxy URL.
-
-## Local URLs
-
-Caddy terminates TLS on the Tailscale IP at 443 and proxies to the pitchfork
-proxy on loopback 9443. URLs are portless: `https://<slug>.lvh.ariaamini.com`
-(`.dev.` aliases `.lvh.`). Worktree slugs flatten to `<app>-<worktree>`, for
-example `{{ app_name }}-my-task`. Nested hostnames (`worktree.app.lvh…`) and
-direct `:9443` access do not work: the wildcard cert covers one level, and the
-proxy binds loopback only.
-
-`mise run bootstrap` registers the workspace slug and writes `BASE_URL`. Never
-run `pitchfork proxy setup` here — it would grab port 443 from the global Caddy
-TLS edge.
-
-## Commands
-
-- `pitchfork list` / `pitchfork logs dev` / `pitchfork tui` — inspect the dev
-  daemon
-- `mise run bootstrap` — configure the workspace, remove orphaned Docker
-  resources, and start the app
-- `vp check` — format, lint, and type-check
-- `vp test run` — run Vitest projects
-- `vp run test:ui` — Vitest UI in the browser. Clients can write snapshots and
-  baselines, but cannot execute commands (`allowWrite` on, `allowExec` off).
-- `vp run e2e` — run Playwright smoke tests against the workspace proxy
-- `vp run compose:up` — start local services
-- `vp run db:push` — apply the current schema
-- `vp run db:migrate` — run migrations
-- `vp run dead-code` — find unused exports with fallow
-
-Use `pnpm` through Vite+ (`vp i`, `vp run <script>`). Secrets resolve through
-Varlock; never commit generated or local secret files.
+Use pnpm through Vite+ (`vp i`, `vp run <script>`). Add packages as
+devDependencies: Nitro bundles the app into `.output`, and Railway prunes
+devDependencies after the build. `dependencies` holds only what runs outside the
+bundle: Varlock and its vault plugin, and `drizzle-orm` and `pg` for migrations.
 
 ## Tests
 
-Use the smallest test scope that covers the behavior. Test regressions and
-meaningful behavior changes; skip trivial edits.
+Use the smallest scope that covers the behavior. Test regressions and meaningful
+behavior changes; skip trivial edits.
 
-- **Unit** (`src/**/*.unit.test.ts`): pure logic, edge cases, and
-  transformations.
-- **Server** (`src/**/*.server.test.ts`): server logic and database
-  integrations.
-- **Browser** (`src/**/*.test.tsx`, `tests/**/*.test.tsx`): component
-  interactions and visual states in real Chromium, on desktop and mobile.
-- **E2E** (`e2e/`): smoke checks against a local or deployed app URL.
+- **Unit** (`*.unit.test.ts`): pure logic.
+- **Server** (`*.server.test.ts`): server logic and the database.
+- **Browser** (`*.test.tsx`): components and screenshots in real Chromium, on
+  desktop and mobile. Screenshot assertions go here, not in E2E.
+- **E2E** (`e2e/`, `vp run e2e`): smoke checks against a running app.
 
-Install full Chromium with `vp exec playwright install chromium --no-shell`.
-Screenshot assertions belong in Vitest Browser Mode.
+Browser tests need full Chromium:
+`vp exec playwright install chromium --no-shell`. `vp run test:ui` can write
+snapshots and baselines but not run commands.
 
-## Style rules
+## Design
 
-### Always build `className` with `cn()`
-
-Compose conditional or combined classes with `cn()`. Never interpolate classes
-with template literals or string concatenation — an oxlint
-`no-restricted-syntax` rule rejects template literals in `className`.
-
-Bad:
-
-```tsx
-const className = `flex border-2 ${active ? 'bg-kitchen-yolk' : 'bg-card'} ${
-	disabled ? 'opacity-35' : ''
-}`
-return <Link className={`${className} focus-visible:outline-2`} />
-```
-
-Good:
-
-```tsx
-const className = cn(
-	'flex border-2',
-	active ? 'bg-kitchen-yolk' : 'bg-card',
-	disabled && 'opacity-35',
-)
-return <Link className={cn(className, 'focus-visible:outline-2')} />
-```
+shadcn is the single source of truth: build UI from `src/components/ui` and the
+theme tokens in `src/styles.css`. Never restyle a component at the call site;
+layout classes (width, margin, alignment) are fine. When a second place needs a
+new look, add a variant named for what it means. Lint enforces the mechanical
+rules.
