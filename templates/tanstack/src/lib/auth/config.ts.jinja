@@ -22,7 +22,7 @@ export const allowedHosts = [
 	'app-{{ app_name }}-*.up.railway.app',
 ]
 
-export function getAuth() {
+function createAuth() {
 	const options: BetterAuthOptions = {
 		appName: '{{ app_name }}',
 		baseURL: {
@@ -31,6 +31,13 @@ export function getAuth() {
 			fallback: appOrigin,
 		},
 		secret: env.BETTER_AUTH_SECRET,
+		// Railway's edge overwrites X-Real-IP with the client address. Its
+		// X-Forwarded-For can hold several hops, which Better Auth refuses to
+		// guess at, so every request would share one rate-limit bucket. Only
+		// X-Real-IP is trusted: a request that skips the edge has no trusted
+		// address and falls back to the shared bucket instead of picking its own
+		// key.
+		advanced: { ipAddress: { ipAddressHeaders: ['x-real-ip'] } },
 		database: drizzleAdapter(getDb(), {
 			provider: 'pg',
 			schema: { account, session, user, verification },
@@ -79,4 +86,14 @@ export function getAuth() {
 {%- endif %}
 
 	return betterAuth(options)
+}
+
+let auth: ReturnType<typeof createAuth> | undefined
+
+// Builds Better Auth once per server process, not on every session lookup
+// and /api/auth request.
+export function getAuth() {
+	auth ??= createAuth()
+
+	return auth
 }
