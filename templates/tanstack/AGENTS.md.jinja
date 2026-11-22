@@ -25,7 +25,10 @@ Rerun `mise run bootstrap` after a checkout moves, to repair its proxy URL.
 Never run `pitchfork proxy setup`: it would take port 443 from the Caddy TLS
 edge. `pitchfork logs dev` shows the dev server's output.
 
-Use pnpm through Vite+ (`vp i`, `vp run <script>`).
+Use pnpm through Vite+ (`vp i`, `vp run <script>`). Add packages as
+devDependencies: Nitro bundles the app into `.output`, and Railway prunes
+devDependencies after the build. `dependencies` holds only what runs outside the
+bundle: Varlock and its vault plugin, and `drizzle-orm` and `pg` for migrations.
 
 ## Tests
 
